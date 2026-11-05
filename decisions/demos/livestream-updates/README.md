@@ -476,14 +476,17 @@ npm run typecheck
 npm run build
 uv run --no-project --index-url https://packagefeedproxy.microsoft.io/pypi/simple `
   --with-requirements requirements-dev.txt python -m unittest test_demo_server test_retail_receiving test_catalog_matching -v
-# With both servers running, SLIDEV_ENABLE_CODE_RUN=1, and Microsoft Edge installed:
+# With both servers running, SLIDEV_ENABLE_CODE_RUN=1,
+# SLIDEV_ENABLE_LIVE=0, and Microsoft Edge installed:
 uv run --no-project --index-url https://packagefeedproxy.microsoft.io/pypi/simple `
   --with-requirements requirements-dev.txt python test_browser.py
 ```
 
 The browser test uses headless Edge at 1920x1080 and 1280x720. It stubs
 readiness and rewrites each request to the adapter's test client, so it makes
-no Azure calls. It checks layout and toolbar collisions on all 25 slides, the
+no Azure calls. Before stubbing readiness, it checks that the actual adapter
+allows local code runs; restart the adapter after changing that setting.
+It checks layout and toolbar collisions on all 25 slides, the
 System 1 and System 2 lanes (including one lane failing alone, the Code and
 JSON views, the cost labels, and the reasoning-summary layout), both code
 editor stages, the triage threshold, native Microsoft SDK listings and JSON,

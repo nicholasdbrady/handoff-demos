@@ -87,9 +87,11 @@ def check_layout(page: Page) -> None:
 
 def visit(page: Page, base: str, slide: str) -> Locator:
     """Wait for Vue and the slide's dynamic import, then return the visible slide."""
-    page.goto(f"{base}/{slide}", wait_until="domcontentloaded")
+    page.goto(f"{base}/{slide}", wait_until="domcontentloaded", timeout=90_000)
+    rendered = page.locator(".slidev-layout:visible").first
+    expect(rendered).to_be_visible(timeout=90_000)
     check_layout(page)
-    return page.locator(".slidev-layout:visible").first
+    return rendered
 
 
 def capture(page: Page, folder: Path | None, name: str) -> None:
@@ -112,7 +114,7 @@ def run_editor(page: Page) -> dict:
     with page.expect_response("**/demo-api/run", timeout=90000) as pending:
         page.get_by_role("button", name="Run code").click()
     response = pending.value
-    assert response.status == 200, f"Run returned HTTP {response.status}"
+    assert response.status == 200, f"Run returned HTTP {response.status}: {response.text()}"
     return response.json()
 
 
@@ -796,6 +798,18 @@ def main() -> None:
     if args.capture_dir:
         args.capture_dir.mkdir(parents=True, exist_ok=True)
     with sync_playwright() as playwright:
+        request = playwright.request.new_context()
+        try:
+            response = request.get(
+                f"{args.url}/demo-api/status", headers={"X-Demo-Client": "slidev"}
+            )
+            if not response.ok or not response.json().get("code_run_enabled"):
+                parser.error(
+                    "Start the local adapter with SLIDEV_ENABLE_CODE_RUN=1. "
+                    "Keep SLIDEV_ENABLE_LIVE=0 for offline browser tests."
+                )
+        finally:
+            request.dispose()
         browser = playwright.chromium.launch(channel="msedge", headless=True)
         try:
             check_color_modes(browser, args.url, args.capture_dir)

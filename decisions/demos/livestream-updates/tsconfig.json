@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "skipLibCheck": true,
+    "lib": ["ES2022", "DOM"],
+    "types": ["vite/client", "node"],
+    "allowImportingTsExtensions": true,
+    "noEmit": true
+  },
+  "include": ["components/**/*.vue", "code-run.ts", "demo-api.ts", "setup/**/*.ts", "vite.config.ts"]
+}

@@ -1,0 +1,8 @@
+.env
+.venv/
+.azure/
+node_modules/
+dist/
+__pycache__/
+.foundry/
+.logs/

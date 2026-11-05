@@ -1,0 +1,16 @@
+{
+  "mode": "synthetic",
+  "text": "Synthetic interface example. No model was called and no notebook was generated.\n\nA live author would draft a notebook, check JSON and Python syntax, and report which checks actually ran. This fixture illustrates the chat layout only.",
+  "elapsed_ms": 0,
+  "usage": {},
+  "cost_usd": null,
+  "events": [],
+  "files": [],
+  "transport": "synthetic",
+  "usage_note": "No measured latency, tokens, cost, tools, or artifacts.",
+  "raw": {
+    "status": "illustration",
+    "synthetic": true,
+    "lane": "default"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "copilot-harness-livestream",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "slidev slides.md --port 3070 --bind 127.0.0.1",
+    "build": "slidev build slides.md",
+    "typecheck": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "@fontsource-variable/manrope": "^5.2.0",
+    "@slidev/cli": "53.0.0",
+    "@slidev/theme-default": "^0.25.0",
+    "vue": "^3.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0",
+    "vue-tsc": "^3.0.0"
+  }
+}

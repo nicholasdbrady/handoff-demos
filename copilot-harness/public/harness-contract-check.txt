@@ -1,0 +1,9 @@
+Arrow contract check: PASS (final harness.excalidraw)
+- 8/8 arrows orthogonal.
+- 8/8 arrows have valid endpoint bindings.
+- At least 24 px clearance from non-endpoint nodes.
+- No crossings between unrelated routes.
+- Minimum source text size: 18 px (about 17.7 px at display scale).
+- Accent is limited to the four active-loop arrows; exit and input arrows are neutral.
+- Artboard/viewBox and PNG: 1137 x 472; fitted in the existing 1166 x 465 image box without CSS changes.
+- SVG font-family: Manrope, Helvetica, Segoe UI Emoji.

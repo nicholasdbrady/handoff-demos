@@ -1,0 +1,1 @@
+The model starts each turn by reading the user task and current context. If it needs a tool, the harness checks policy, runs the tool in the workspace, appends the result and trace, and returns to the model for another turn. If the model answers directly, or policy or a limit stops the run, the harness produces a checked artifact.

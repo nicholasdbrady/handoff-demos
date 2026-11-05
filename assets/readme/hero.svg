@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="360" viewBox="0 0 1200 360" role="img" aria-labelledby="title description">
+  <title id="title">The Handoff with Nick Brady: runnable demos</title>
+  <desc id="description">Inspect the code, present the slides, and adapt Decisions and Copilot harness demos from The Handoff.</desc>
+  <rect width="1200" height="360" rx="12" fill="#0b1026"/>
+  <g font-family="-apple-system, BlinkMacSystemFont, Segoe UI, sans-serif">
+    <text x="60" y="65" font-size="26" fill="#c5d1ff">WITH NICK BRADY</text>
+    <text x="54" y="166" font-size="100" font-weight="750" letter-spacing="-4" fill="#ecf1ff">The Handoff</text>
+    <path d="M60 194 H1140" stroke="#5864b7" stroke-width="3"/>
+    <path d="m1118 182 22 12-22 12" fill="none" stroke="#c5d1ff" stroke-width="3"/>
+    <text x="60" y="251" font-size="38" font-weight="600" fill="#ecf1ff">Run it. Inspect it. Make it yours.</text>
+    <text x="60" y="311" font-size="27" fill="#c5d1ff" font-family="ui-monospace, Consolas, monospace">decisions/</text>
+    <text x="355" y="311" font-size="27" fill="#c5d1ff" font-family="ui-monospace, Consolas, monospace">copilot-harness/</text>
+    <path d="M60 328 H238 M355 328 H637" stroke="#4e52b9" stroke-width="5"/>
+  </g>
+</svg>

@@ -1,0 +1,1 @@
+The harness turns user tasks into model decisions, policy-checked tool calls, workspace updates, and growing trace context, while direct answers exit as checked artifacts.

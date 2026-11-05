@@ -1,0 +1,4 @@
+# Decisions API support (client.decisions.create) starts in openai 3.26.0
+openai>=3.26.0
+azure-identity
+python-dotenv

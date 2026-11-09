@@ -196,7 +196,11 @@ class: demo-slide
 
 # Builder skills: from guidance to checked code.
 
-<DemoCapture slug="maf-skills" />
+<DemoCapture slug="maf-skills" :onscreen-caveats="[
+  'Builder skills guide development; they are not runtime skills.',
+  'This Python app configures its own model and function tool.',
+  'Live calls require Foundry access and can incur charges.',
+]" />
 
 <!--
 I will follow the coding agent from the builder instructions into the application it produces. The captured Python application called the add tool once with nineteen and twenty-three, then returned forty-two. Its measured live run took 10.602 seconds. I can inspect the installed guidance, generated code, and execution transcript separately. The skill helps the coding assistant choose framework patterns and checks; it is not imported by the shipped application. The application configures its own Foundry client, instructions, and function tool. For developers, that gives us two review boundaries: check the assistant's development work, then check what the deployed application actually does.
@@ -356,7 +360,11 @@ class: demo-slide
 
 # azd: inspect configuration and execution.
 
-<DemoCapture slug="azd-agent" />
+<DemoCapture slug="azd-agent" :onscreen-caveats="[
+  'Deployment needs permissions, quota, and azd 1.37+.',
+  'Azure resources and model calls are billable.',
+  'The recorded Inspector latency is specific to that run.',
+]" />
 
 <!--
 I will start with the reviewed azure.yaml: agent code, project dependency, model version, deployment type, and runtime resources. The recorded Agent Inspector screenshot shows a real local request that took 396.8 seconds; I will show that as recorded evidence, not repeat it as our live path. The captured hosted invocation took about 11.9 seconds. The Run live button makes a new hosted request using our server-side configuration and Azure CLI identity. Source upload and remote build avoid requiring a local container build. For developers, configuration review, local inspection, and hosted execution are distinct checks; none substitutes for the others.
@@ -404,7 +412,11 @@ class: demo-slide
 
 # Choose the right video model.
 
-<DemoCapture slug="fal-video" />
+<DemoCapture slug="fal-video" :onscreen-caveats="[
+  'Public preview, US-hosted: Kling US Data Zone; LTX and MiniMax Global Standard.',
+  'fal processes video outside Microsoft facilities.',
+  'Generation is unavailable here. Confirm access, quota, and pricing units before generating.',
+]" />
 
 <!--
 I will compare the portfolio through a practical sequence: choose a prompt, use a fast draft to test composition, and decide whether a quality-oriented pass is worth the added time and cost. LTX-2.5 has Fast and Pro options; MiniMax H3 has Max Turbo and Max; Kling v3 Pro adds another family to compare on the same task. Our subscription lacks approved fal deployment access, so this panel uses the source-based comparison rather than a generated video. For developers, access, region, quota, terms, and model-specific pricing are prerequisites. The model names suggest workflow options, but only task-specific results establish which one is best.

@@ -125,15 +125,18 @@ onMounted(load)
             allow="camera 'none'; microphone 'none'; geolocation 'none'; payment 'none'; clipboard-read 'none'; clipboard-write 'none'" />
         </div>
         <aside>
-          <h2>What did this run cost in work?</h2>
+          <h2>Tokens and time.</h2>
           <table class="kimi-metrics">
             <thead><tr><th>Effort</th><th>Total tokens</th><th>Seconds</th></tr></thead>
             <tbody><tr v-for="row in metrics" :key="row.requested_reasoning_effort">
               <th>{{ row.requested_reasoning_effort }}</th><td>{{ row.total_tokens.toLocaleString('en-US') }}</td><td>{{ (row.latency_ms / 1000).toFixed(2) }}</td>
             </tr></tbody>
           </table>
-          <p>Reasoning tokens are included in output tokens.</p>
-          <p>One sample per setting. Rendering checks are not a quality ranking.</p>
+          <div class="demo-limits" aria-label="Demo limits">
+            <p>Reasoning tokens are included in output tokens.</p>
+            <p>One sample per reasoning setting; not a quality ranking.</p>
+            <p>Nov 9 catalog: GA; brief: preview. Cutoff status is unverified.</p>
+          </div>
         </aside>
       </div>
       <details class="kimi-prompt"><summary>Exact shared prompt</summary><pre tabindex="0">{{ prompt }}</pre></details>

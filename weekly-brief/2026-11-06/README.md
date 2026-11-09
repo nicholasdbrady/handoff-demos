@@ -86,6 +86,12 @@ Browser checks use Microsoft Edge, inspect every slide in both themes at both
 required resolutions, and check presenter notes. Captures belong outside Git.
 First-party citations and speaking notes are in `slides.md`.
 
+Demo slides use short, authored `onscreenCaveats` in `slides.md`, rather than
+rendering operator notes. Full original `caveats`, metrics, environment details,
+and provenance remain unchanged in each `public/demos/<slug>/manifest.json`
+and the demo READMEs. The Kimi scene component keeps its three material limits
+beside the measured comparison; the benchmark retains its own concise limits.
+
 ## Slide order
 
 | Slides | Topic | Demo state |

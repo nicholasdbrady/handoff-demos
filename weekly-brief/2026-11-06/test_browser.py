@@ -58,6 +58,16 @@ def main() -> None:
                       const slide = root.querySelector('.slidev-layout') || root;
                       const box = slide.getBoundingClientRect();
                       const defects = [];
+                      for (const limits of slide.querySelectorAll('.demo-limits')) {
+                        if (!limits.checkVisibility()) continue;
+                        if (limits.querySelectorAll('p').length > 3)
+                          defects.push({tag:'demo-limits',text:'More than three on-screen caveats'});
+                        const panel=limits.closest('aside');
+                        if (panel && (panel.scrollHeight>panel.clientHeight+2 || panel.scrollWidth>panel.clientWidth+2))
+                          defects.push({tag:'demo-limits',text:'Demo caveats require scrolling'});
+                        if (/clone|TLS|Do not hide|Do not present|global unavailability|show-planning estimate/i.test(limits.textContent))
+                          defects.push({tag:'demo-limits',text:'Operator evidence leaked into presentation copy'});
+                      }
                       const clips = node => {
                         for (let p=node.parentElement; p && p!==slide; p=p.parentElement) {
                           const css=getComputedStyle(p);

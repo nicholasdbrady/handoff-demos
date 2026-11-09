@@ -7,7 +7,7 @@ type Manifest = {
   environment: Record<string, unknown>; assets: Asset[]; metrics: Record<string, unknown>
   live: { supported: boolean; command?: string; typical_seconds?: number }; caveats: string[]
 }
-const props = defineProps<{ slug: string; assetMatch?: string }>()
+const props = defineProps<{ slug: string; assetMatch?: string; onscreenCaveats?: string[] }>()
 const manifest = ref<Manifest>()
 const selected = ref(0)
 const captureError = ref('')
@@ -194,12 +194,9 @@ onUnmounted(() => { alive = false; if (interval) clearInterval(interval) })
         </div>
         <aside class="capture-details">
           <h2>{{ manifest.title }}</h2>
-          <p v-for="caveat in manifest.caveats" :key="caveat">{{ caveat }}</p>
-          <details v-if="Object.keys(manifest.metrics ?? {}).length">
-            <summary>Captured metrics</summary><pre>{{ JSON.stringify(manifest.metrics, null, 2) }}</pre>
-          </details>
-          <details><summary>Capture environment</summary><pre>{{ JSON.stringify(manifest.environment, null, 2) }}</pre></details>
-          <p v-if="manifest.live.supported && !liveEnabled">Live disabled. Enable the local adapter before the show.</p>
+          <div class="demo-limits" aria-label="Demo limits">
+            <p v-for="caveat in props.onscreenCaveats" :key="caveat">{{ caveat }}</p>
+          </div>
         </aside>
       </div>
     </template>

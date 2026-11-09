@@ -1,6 +1,6 @@
 # Decisions and agent OBO
 
-Present the 25-slide deck, or run the Python examples directly.
+Present the 28-slide deck, or run the Python examples directly.
 Keep this folder intact: the deck adapter imports both sibling Python demos.
 
 ## Install

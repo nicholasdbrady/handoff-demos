@@ -1,4 +1,5 @@
 openai>=3.26.0
+typesafe-sdk==0.7.5
 azure-identity
 python-dotenv
 fastapi>=0.115

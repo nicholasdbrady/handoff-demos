@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue'
 import { api, decisionsBlocker, type DemoStatus } from '../demo-api'
 
 const message = ref('Checking the connection…')
+const checking = ref(true)
 
 async function checkStatus() {
   try {
@@ -15,6 +16,9 @@ async function checkStatus() {
   catch (cause) {
     message.value = cause instanceof Error ? cause.message : 'Cannot reach the demo server.'
   }
+  finally {
+    checking.value = false
+  }
 }
 onMounted(checkStatus)
 </script>
@@ -22,7 +26,7 @@ onMounted(checkStatus)
 <template>
   <section v-if="message" class="demo run-mode" aria-label="Code runner" @keydown.stop @click.stop>
     <div class="demo-toolbar">
-      <span class="run-status" role="status">{{ message }}</span>
+      <span class="run-status" :class="{ 'live-signal': checking }" :data-live-state="checking ? 'live' : undefined" role="status">{{ message }}</span>
     </div>
   </section>
 </template>

@@ -13,3 +13,5 @@ __pycache__/
 .logs/
 playwright-report/
 test-results/
+.impeccable/
+.playwright-mcp/

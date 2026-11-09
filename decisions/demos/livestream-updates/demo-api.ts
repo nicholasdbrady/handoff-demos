@@ -76,6 +76,8 @@ export interface OboResult {
   message: string
 }
 
+const localServerGuidance = 'The local demo server did not respond. Start demo_server.py on port 8765, then retry. A timed-out request can still be running; wait before you repeat a live sign-in.'
+
 export async function api<T>(path: string, body?: object): Promise<T> {
   let response: Response
   try {
@@ -88,11 +90,16 @@ export async function api<T>(path: string, body?: object): Promise<T> {
     })
   }
   catch {
-    throw new Error('The local demo server did not respond. Start demo_server.py on port 8765, then retry. A timed-out request can still be running; wait before you repeat a live sign-in.')
+    throw new Error(localServerGuidance)
   }
   if (!response.ok) {
-    const error: { detail?: unknown } = await response.json().catch(() => ({}))
-    throw new Error(typeof error.detail === 'string' ? error.detail : `Demo request failed (${response.status}). Check the local server and configuration.`)
+    const error: unknown = await response.json().catch(() => null)
+    const detail = error && typeof error === 'object' && 'detail' in error ? error.detail : undefined
+    throw new Error(typeof detail === 'string'
+      ? detail
+      : [502, 503, 504].includes(response.status)
+          ? localServerGuidance
+          : `Demo request failed (${response.status}). Check the local server and configuration.`)
   }
   if (!response.headers.get('content-type')?.includes('application/json')) {
     throw new Error('The demo API is unavailable on this host. Use npm run dev with demo_server.py; a static deck does not include the backend.')

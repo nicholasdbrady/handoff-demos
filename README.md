@@ -21,7 +21,7 @@ the exact checks run in code. The live model button is disabled.*
 
 | Demo | Try first | Cloud boundary |
 | --- | --- | --- |
-| [Decisions and agent OBO](decisions/README.md) | 25-slide deck or direct Python mock example | Live Decisions accepts Entra or a resource key. OBO requires delegated user sign-in and consent. |
+| [Decisions and agent OBO](decisions/README.md) | 28-slide deck or direct Python mock example | Live Decisions accepts Entra or a resource key. OBO requires delegated user sign-in and consent. |
 | [Copilot harness](copilot-harness/README.md) | 20-slide deck with synthetic chat fixtures | Optional live recipe calls use Entra. Hosted runtimes and Fusion backend are not included. |
 
 Synthetic examples illustrate the interface. They are not measurements, service

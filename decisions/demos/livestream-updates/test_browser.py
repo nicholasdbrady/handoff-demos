@@ -7,8 +7,8 @@ from pathlib import Path
 
 from playwright.sync_api import Locator, Page, Route, expect, sync_playwright
 
-SLIDES = 25
-COMPARE, CODE_A, CODE_B, TRIAGE, MICROSOFT, IMAGE, RETAIL, PROVIDERS, OBO = "3", "5?clicks=1", "5", "6", "11", "8", "9", "12", "19"
+SLIDES = 28
+COMPARE, CODE_A, CODE_B, CODE_IMAGE, TRIAGE, MICROSOFT, IMAGE, RETAIL, PROVIDERS, OBO = "8", "7?clicks=1", "7", "7?clicks=2", "9", "14", "11", "12", "15", "22"
 READY = {
     "live_enabled": True, "code_run_enabled": True, "decisions_configured": True,
     "systemone_configured": True,
@@ -194,7 +194,7 @@ def check_compare(page: Page, base: str, folder: Path | None) -> None:
 
 
 def check_code_slides(page: Page, base: str, folder: Path | None) -> None:
-    """Edit and run both Monaco examples through the synthetic test client."""
+    """Edit and run all three Monaco examples through the synthetic test client."""
     slide = visit(page, base, CODE_A)
     editor = page.locator(".slidev-monaco-container:visible .view-lines").first
     expect(editor).to_be_visible(timeout=20000)
@@ -238,10 +238,25 @@ def check_code_slides(page: Page, base: str, folder: Path | None) -> None:
     page.on("request", track_run)
     slide.get_by_role("button", name="Three answer shapes", exact=True).click()
     expect(page.locator(".slidev-monaco-container:visible .view-lines")).to_contain_text("teams =")
+    slide.get_by_role("button", name="Image input", exact=True).click()
+    expect(page.locator(".slidev-monaco-container:visible .view-lines")).to_contain_text("input_image")
     slide.get_by_role("button", name="One predicate", exact=True).click()
     expect(page.locator(".slidev-monaco-container:visible .view-lines")).to_contain_text("I was charged twice")
     assert not calls, "Switching code stages must not run inference."
     page.remove_listener("request", track_run)
+    slide = visit(page, base, CODE_IMAGE)
+    expect(page.locator(".slidev-monaco-container:visible .view-lines").first).to_be_visible(timeout=20000)
+    with page.expect_request("**/demo-api/run") as pending:
+        result = run_editor(page)
+    code = pending.value.post_data_json["code"]
+    assert 'Path("public/packing/sunshine.png")' in code and "base64.b64encode" in code
+    assert '"type": "input_image"' in code and '"type": "box"' not in code
+    assert result["mode"] == "rehearsal" and result["exit_code"] == 0, result
+    output = page.locator(".slidev-runner-output:visible").first
+    for name in ("rain_protection", "footwear", "visibility"):
+        expect(output).to_contain_text(f'"name": "{name}"')
+    check_layout(page)
+    capture(page, folder, "slidev-code-image-input.png")
 
 
 def check_triage(page: Page, base: str, folder: Path | None) -> None:
@@ -758,9 +773,16 @@ def check_color_modes(browser, base: str, folder: Path | None) -> None:
     try:
         for mode in ("light", "dark"):
             page.emulate_media(color_scheme=mode)
-            for number in ("1", COMPARE, CODE_A, TRIAGE, MICROSOFT, IMAGE, RETAIL, PROVIDERS, OBO):
+            for number in ("1", "3", "4", "5", "6", COMPARE, CODE_A, CODE_IMAGE, TRIAGE, MICROSOFT, IMAGE, RETAIL, PROVIDERS, OBO):
                 slide = visit(page, base, number)
                 expect(page.locator("html")).to_have_class(re.compile(rf"\b{mode}\b"))
+                if number == "3":
+                    expect(slide.locator(".lede")).to_have_css("opacity", "1")
+                if number == "4":
+                    for text in ("OpenAI Python ≥3.26.0", "OpenAI JavaScript ≥7.30.0",
+                                 "No model language SDK listed in Learn.", "Laya",
+                                 "not a documented managed Foundry offering"):
+                        expect(slide).to_contain_text(text)
                 contrast = slide.evaluate("""el => {
                     const luminance = color => {
                         const rgb = color.match(/[\\d.]+/g).slice(0, 3).map(Number)
@@ -792,7 +814,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--url", default="http://127.0.0.1:3030")
     parser.add_argument("--capture-dir", type=Path)
-    parser.add_argument("--live-decisions", action="store_true", help="Make billable Azure OpenAI calls with synthetic text: one System 1 and System 2 run, two triage runs, and one code run on each Monaco slide. Does not invoke live OBO.")
+    parser.add_argument("--live-decisions", action="store_true", help="Make billable Azure OpenAI calls with synthetic text: one System 1 and System 2 run, two triage runs, and one run per text code stage. Does not invoke the image code stage or live OBO.")
     parser.add_argument("--live-packing", action="store_true", help="Make five billable Azure Decisions calls using the synthetic suitcase photos. Never invokes OBO.")
     args = parser.parse_args()
     if args.capture_dir:

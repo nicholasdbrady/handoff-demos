@@ -1,9 +1,36 @@
-Arrow contract check: PASS (final harness.excalidraw)
-- 8/8 arrows orthogonal.
-- 8/8 arrows have valid endpoint bindings.
-- At least 24 px clearance from non-endpoint nodes.
-- No crossings between unrelated routes.
-- Minimum source text size: 18 px (about 17.7 px at display scale).
-- Accent is limited to the four active-loop arrows; exit and input arrows are neutral.
-- Artboard/viewBox and PNG: 1137 x 472; fitted in the existing 1166 x 465 image box without CSS changes.
-- SVG font-family: Manrope, Helvetica, Segoe UI Emoji.
+C Orbit turn-control correction
+
+Deck: inline-SVG two-turn animation with Replay and Pause/Resume.
+Static light/dark PNG and SVG, cropped to the diagram only, remain for export.
+Reduced motion preserves ordered checks without token travel.
+The source-session verification below describes the approved prototype.
+Its WebM is not included; the deck runs the sequence in the existing Vue runtime.
+
+Source timeline: 40.000 seconds, including a 4-second completion hold.
+Exported WebM: 40.600 seconds, 1280 x 720, 20 fps, 812 frames.
+The export adds a 0.600-second opening hold. Response travel begins at
+source 33.600 seconds and reaches Response at 36.000 seconds.
+
+PASS: 30 live requestAnimationFrame phases observed in exact timeline order.
+PASS: Two complete clockwise LLM/tool/workspace/context/LLM circuits.
+PASS: Each turn checks configured policy and limits, checkpoints state,
+      then assesses progress or completion criteria.
+PASS: First turn continues because progress is made; it is not complete.
+PASS: Response activates only after the second turn's completion decision.
+PASS: Token route joins have 0 px positional discontinuity.
+PASS: Terminal state holds until explicit Replay; no automatic reset.
+PASS: Theme and reduced-motion changes preserve the current phase.
+PASS: Reduced motion removes token travel and retains ordered check states.
+PASS: Motion-off shows the static continue/complete distinction.
+PASS: C light/dark labels are at least 19 px and within the slide frame.
+PASS: No browser errors during Edge validation.
+PASS: Actual encoded video decoded in Edge; beginning, policy/checkpoint,
+      continuation, second turn, completion, response and ending inspected.
+PASS: A/B diagram markup and D composition were not edited.
+
+Scope: This is an illustrative configured harness-control sequence, not
+live telemetry or a universal SDK, Copilot or Foundry feature claim.
+Policy-block, no-progress and exhausted-limit branches are not animated;
+the speaker note explicitly distinguishes these stops from success.
+The single-font design-hook finding is intentional: Manrope is pinned
+by the brief, with size and weight providing the hierarchy.

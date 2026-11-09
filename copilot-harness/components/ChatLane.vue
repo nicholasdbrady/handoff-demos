@@ -65,7 +65,7 @@ function fileHref(file: NonNullable<LiveResult['files']>[number]): string {
     <div v-if="view === 'chat'" ref="transcript" class="chat-transcript" role="log" :aria-label="`${title} transcript`" aria-live="polite" aria-relevant="additions text" @scroll="onScroll">
       <div class="chat-user-message"><span class="chat-speaker">You</span><p :class="{ 'chat-task-clamped': !expanded }">{{ task }}</p><button :aria-expanded="expanded" @click="expanded = !expanded">{{ expanded ? 'Show less' : 'Show full task' }}</button></div>
       <details v-if="running || queued || entries.length || result || error" class="chat-thinking">
-        <summary><span :class="{ 'chat-working': running || queued }">{{ thinkingLabel }}</span><span v-if="reasoningTokens !== undefined">{{ reasoningTokens.toLocaleString() }} reasoning tokens</span></summary>
+        <summary><span :class="{ 'chat-working': running }">{{ thinkingLabel }}</span><span v-if="reasoningTokens !== undefined">{{ reasoningTokens.toLocaleString() }} reasoning tokens</span></summary>
         <div class="chat-thinking-body">
           <ChatMessage v-if="summaryText" :text="summaryText" />
           <p v-else>{{ running ? 'No summary received yet.' : 'No summary returned.' }} Only supported summaries and observed activity are shown.</p>

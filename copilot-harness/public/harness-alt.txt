@@ -1,1 +1,1 @@
-The harness turns user tasks into model decisions, policy-checked tool calls, workspace updates, and growing trace context, while direct answers exit as checked artifacts.
+Inside a dashed harness, a clockwise LLM, tool, workspace and context loop returns through harness policy, checkpoint and progress checks: the first turn continues, and the second completes before a response exits right.

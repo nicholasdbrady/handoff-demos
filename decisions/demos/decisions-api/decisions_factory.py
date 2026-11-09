@@ -38,6 +38,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, Iterator
+from urllib.parse import urlparse
 
 from dotenv import load_dotenv
 
@@ -186,6 +187,15 @@ def span(name: str, **attrs: Any) -> Iterator[None]:
 # ── Client ─────────────────────────────────────────────────────────────
 
 
+def token_scope() -> str:
+    """Foundry inference and project routes use the Foundry token audience."""
+    return (
+        "https://ai.azure.com/.default"
+        if (urlparse(ENDPOINT).hostname or "").endswith(".services.ai.azure.com")
+        else "https://cognitiveservices.azure.com/.default"
+    )
+
+
 def get_decisions_client() -> OpenAI:
     """Return an OpenAI client for the Azure OpenAI v1 endpoint.
 
@@ -201,7 +211,7 @@ def get_decisions_client() -> OpenAI:
     from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 
     token_provider = get_bearer_token_provider(
-        DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default"
+        DefaultAzureCredential(), token_scope()
     )
     return OpenAI(base_url=base_url, api_key=token_provider)
 

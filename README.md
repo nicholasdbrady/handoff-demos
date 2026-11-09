@@ -23,6 +23,7 @@ the exact checks run in code. The live model button is disabled.*
 | --- | --- | --- |
 | [Decisions and agent OBO](decisions/README.md) | 28-slide deck or direct Python mock example | Live Decisions accepts Entra or a resource key. OBO requires delegated user sign-in and consent. |
 | [Copilot harness](copilot-harness/README.md) | 20-slide deck with synthetic chat fixtures | Optional live recipe calls use Entra. Hosted runtimes and Fusion backend are not included. |
+| [Weekly Foundry brief · Nov 9, 2026](weekly-brief/2026-11-06/README.md) | 24-slide news deck at port 3080 with notes and educational visuals | Captured demos show their actual status; optional fixed live runners require local opt-in and each demo's cloud prerequisites. |
 
 Synthetic examples illustrate the interface. They are not measurements, service
 recordings, completed agent work, or evidence that cloud access is configured.

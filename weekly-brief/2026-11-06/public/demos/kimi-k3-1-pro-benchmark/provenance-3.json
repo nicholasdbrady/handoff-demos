@@ -1,0 +1,29 @@
+{
+  "trial": 3,
+  "seed": 20263860,
+  "source_commit": "bc38a4386dd702cb67039f12291655282d3c2819",
+  "source_characters": 1591256,
+  "corpus_characters": 1595059,
+  "approximate_cl100k_tokens": 378911,
+  "fixture_character_offsets": [
+    195420,
+    837952,
+    1496141
+  ],
+  "sha256": "365f15aa7068d37ff9eb58cc115126850cae44f5fe84a78a43827afa9f7aaa13",
+  "sources": [
+    {
+      "path": "sdk/ai/azure-ai-projects/azure/ai/projects/models/_models.py",
+      "url": "https://github.com/Azure/azure-sdk-for-python/blob/bc38a4386dd702cb67039f12291655282d3c2819/sdk/ai/azure-ai-projects/azure/ai/projects/models/_models.py"
+    },
+    {
+      "path": "sdk/ai/azure-ai-projects/CHANGELOG.md",
+      "url": "https://github.com/Azure/azure-sdk-for-python/blob/bc38a4386dd702cb67039f12291655282d3c2819/sdk/ai/azure-ai-projects/CHANGELOG.md"
+    },
+    {
+      "path": "LICENSE",
+      "url": "https://github.com/Azure/azure-sdk-for-python/blob/bc38a4386dd702cb67039f12291655282d3c2819/LICENSE"
+    }
+  ],
+  "note": "Token estimate is not Kimi's tokenizer; use actual service usage for reported input size. Full public model source is split at line boundaries, without repeating filler."
+}

@@ -159,6 +159,7 @@ class: benchmark-slide
 # Kimi: test a harder task.
 
 <DemoCapture class="capture-benchmark" slug="kimi-k3-1-pro-benchmark" asset-match="benchmark.html" />
+<p class="benchmark-limit">Bespoke three-trial test with fictional planted fixtures. Cost is an estimate.</p>
 
 <!--
 I asked Kimi to read an image policy, select a route, join distributed records while rejecting stale epochs, and verify real SDK code facts. Each high-effort trial received 373,132 service-reported input tokens. All three attempted trials passed, with all thirty-three exact fields correct. Latencies were 37.3, 26.6, and 25.0 seconds; the median was 26.6 seconds. The uncached cost estimate totals about two dollars sixty, not a billing receipt. The source code is real; the planted routing records are fictional fixtures. This is a small bespoke benchmark, not a leaderboard or a million-token test. I can expand the exact prompt and grading.

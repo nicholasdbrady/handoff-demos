@@ -33,9 +33,10 @@ PROMPT = (
     "faces, readable text, logos, or brands."
 )
 # Routes follow Microsoft Learn's versioned submit/retrieve examples.
+# Dict order is the default preference: the live-verified, lowest-rate option first.
 MODELS = {
-    "ltx-2.5-fast": ("lightricks/ltx-2.5", "text-to-video/fast", 6, "720p"),
     "minimax-h3-max-turbo": ("minimax/h3-max-turbo", "text-to-video", 5, "480P"),
+    "ltx-2.5-fast": ("lightricks/ltx-2.5", "text-to-video/fast", 6, "720p"),
     "ltx-2.5-pro": ("lightricks/ltx-2.5", "text-to-video/pro", 6, "720p"),
     "minimax-h3-max": ("minimax/h3-max", "text-to-video", 5, "480P"),
     "kling-v3-pro": ("kling/v3/pro", "text-to-video", 5, None),
@@ -200,7 +201,8 @@ def generate(model: str, prompt: str) -> dict:
         finally:
             partial.unlink(missing_ok=True)
     return {
-        "ok": True, "model": model, "prompt": prompt,
+        "ok": True, "model": model, "deployment": deployment, "request_id": request_id,
+        "prompt": prompt,
         "seconds": round(time.perf_counter() - started, 3),
         "video_path": path.relative_to(ROOT).as_posix(), **metadata,
         # Estimate from requested generation length, not re-encoded playback length.
@@ -221,17 +223,17 @@ def main() -> int:
     try:
         if model is None:
             deployments = object_env("FAL_DEPLOYMENTS")
-            # Speed-oriented preference, not a measured latency ranking.
+            # Preference order, not a measured latency ranking across models.
             model = next(
                 (name for name in MODELS if isinstance(deployments.get(name), str)
-                 and deployments[name].strip()), "ltx-2.5-fast"
+                 and deployments[name].strip()), "minimax-h3-max-turbo"
             )
         result = generate(model, args.prompt)
     except (ValueError, RuntimeError, TimeoutError, httpx.HTTPError, AzureError,
             subprocess.SubprocessError, OSError, KeyError, IndexError,
             ZeroDivisionError) as error:
         result = {
-            "ok": False, "model": model, "prompt": args.prompt,
+            "ok": False, "model": model, "request_id": None, "prompt": args.prompt,
             "seconds": None, "video_path": None, "width": None, "height": None,
             "duration_s": None, "est_cost_usd": None,
             "error": (

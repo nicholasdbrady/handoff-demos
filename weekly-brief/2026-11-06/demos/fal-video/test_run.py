@@ -49,6 +49,10 @@ class RunnerTests(unittest.TestCase):
             code, _ = self.main_result(["run.py", "--json"], CONFIG)
         self.assertEqual(code, 0)
         self.assertEqual(generate.call_args.args[0], "ltx-2.5-fast")
+        both = {**CONFIG, "FAL_DEPLOYMENTS": '{"ltx-2.5-fast":"draft","minimax-h3-max-turbo":"turbo"}'}
+        with patch.object(RUN, "generate", return_value={"ok": True}) as generate:
+            self.main_result(["run.py", "--json"], both)
+        self.assertEqual(generate.call_args.args[0], "minimax-h3-max-turbo")
 
     def test_missing_price_blocks_before_authentication(self):
         config = {**CONFIG, "FAL_PRICES_PER_SECOND_USD": "{}"}
@@ -118,6 +122,7 @@ class RunnerTests(unittest.TestCase):
             client_type.return_value.__enter__.return_value = client
             result = RUN.generate("ltx-2.5-fast", "scene")
             self.assertTrue(result["ok"])
+            self.assertEqual(result["request_id"], "job-123")
             self.assertEqual(result["duration_s"], 6.125)
             self.assertEqual(result["est_cost_usd"], 0.54)
             self.assertEqual((Path(directory) / result["video_path"]).read_bytes(), b"real-test-payload")
@@ -145,13 +150,14 @@ class RunnerTests(unittest.TestCase):
         public = RUN.ROOT / "public" / "demos" / "fal-video"
         manifest = json.loads((public / "manifest.json").read_text())
         evidence = json.loads((public / "evidence.json").read_text())
-        self.assertEqual(manifest["status"], "unavailable")
-        self.assertFalse(manifest["live"]["supported"])
-        self.assertEqual(manifest["metrics"]["generation_attempts"], 0)
+        self.assertEqual(manifest["status"], "partial")
+        self.assertTrue(manifest["live"]["supported"])
+        self.assertEqual(manifest["metrics"]["generation_attempts"], 1)
+        videos = [asset for asset in manifest["assets"] if asset["kind"] == "video"]
+        self.assertEqual([asset["model"] for asset in videos], ["minimax-h3-max-turbo"])
         for asset in manifest["assets"]:
             self.assertTrue((RUN.ROOT / "public" / asset["path"].lstrip("/")).is_file())
-            self.assertNotEqual(asset["kind"], "video")
-        self.assertFalse(evidence["pricing"]["confirmed_billing_unit"])
+        self.assertTrue(evidence["pricing"]["confirmed_billing_unit"])
         for model in evidence["pricing"]["models"]:
             rate = model["rates"].get(model.get("illustrative_resolution"), model["rates"].get("audio_off"))
             self.assertAlmostEqual(model["illustrative_duration_s"] * rate, model["illustrative_est_cost_usd"])

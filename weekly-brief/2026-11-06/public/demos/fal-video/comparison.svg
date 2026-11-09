@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="480" viewBox="0 0 1280 480" role="img" aria-labelledby="title desc">
   <title id="title">Fast draft or final render? fal model options in Microsoft Foundry</title>
-  <desc id="desc">Source-based comparison, not generated samples or a benchmark. LTX-2.5 Fast supports rapid iteration, while Pro focuses on output quality; both support synchronized audio. MiniMax H3 Max Turbo and Max support text and image inputs; Max also supports image, video and audio references. Kling v3 Pro supports native audio and multi-shot prompts. Check preview access, region and offering, quota, cost and terms before generation. Live generation is unavailable because Fal.EnableDeploy is NotRegistered.</desc>
+  <desc id="desc">Source-based comparison, not generated samples or a benchmark. LTX-2.5 Fast supports rapid iteration, while Pro focuses on output quality; both support synchronized audio. MiniMax H3 Max Turbo and Max support text and image inputs; Max also supports image, video and audio references. Kling v3 Pro supports native audio and multi-shot prompts. Check preview access, region and offering, quota, cost and terms before generation. Live: one MiniMax H3 Max Turbo smoke clip generated in East US 2.</desc>
   <rect width="1280" height="480" fill="#0b1026"/>
   <rect width="1280" height="8" fill="#4e52b9"/>
   <g font-family="IBM Plex Sans, Segoe UI, sans-serif" fill="#ecf1ff">
@@ -30,6 +30,6 @@
     <path d="M40 360H1240" stroke="#5864b7"/>
     <text x="40" y="401" font-size="24" font-weight="700">Preview checks: access / region + offering / quota / cost / terms</text>
     <circle cx="46" cy="444" r="6" fill="#f0a439"/>
-    <text x="64" y="452" font-size="24" fill="#f0a439">Live unavailable: Fal.EnableDeploy is NotRegistered</text>
+    <text x="64" y="452" font-size="24" fill="#f0a439">Live: H3 Max Turbo smoke clip, East US 2, 480P, 5 s</text>
   </g>
 </svg>

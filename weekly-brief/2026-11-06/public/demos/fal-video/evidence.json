@@ -7,27 +7,207 @@
     "kling_schema": "https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=fal-ai/kling-video/v3/pro/text-to-video"
   },
   "observed_access": {
+    "history": [
+      {
+        "at": "2026-11-09T00:40:20-08:00",
+        "feature_state": "NotRegistered",
+        "matching_video_models": []
+      },
+      {
+        "at": "2026-11-09T14:50:00-08:00",
+        "feature_state": "Registered",
+        "by": "subscription Owner (terms accepted for their organization)"
+      }
+    ],
     "feature": "Microsoft.CognitiveServices/Fal.EnableDeploy",
-    "state": "NotRegistered",
-    "catalog_checked_regions": ["eastus", "eastus2"],
-    "matching_video_models": [],
-    "quota_checked_region": "eastus2",
-    "matching_fal_quota_entries": [],
-    "interpretation": "Feature registration requires administrator terms review. No deployment or generation was attempted."
+    "state": "Registered",
+    "catalog_regions_with_fal": {
+      "eastus2": 5,
+      "swedencentral": 4
+    },
+    "catalog_regions_without_fal": [
+      "eastus",
+      "northcentralus"
+    ],
+    "catalog_model_version": "2026-11-02",
+    "catalog_format": "fal.ai",
+    "deployment_capacity_meaning": "sku.capacity 40 => rateLimits [{key: request, count: 40, renewalPeriod: 60}] = 40 requests per minute"
   },
   "pricing": {
     "currency": "USD",
-    "unit": "per video second per launch table heading",
-    "confirmed_billing_unit": false,
-    "caveat": "Launch prose says per minute; the table says per video second. Confirm current deployment pricing before use.",
+    "unit": "USD per 1 Second of generated video",
+    "confirmed_billing_unit": true,
+    "caveat": "Launch prose says per minute; its table and the Azure Retail Prices API ('Azure Fal' product, unitOfMeasure '1 Second') say per second. Retail meters are named 'Fal Test ...'; no Kling meter was listed. Invoice not yet observed.",
     "models": [
-      {"model": "kling-v3-pro", "offering": "US Data Zone", "rates": {"audio_off": 0.1232, "audio_on": 0.1848, "audio_and_voice_control": 0.2156}, "illustrative_duration_s": 5, "illustrative_est_cost_usd": 0.616, "duration_range_s": [3, 15], "resolutions": null, "fps": null},
-      {"model": "ltx-2.5-fast", "offering": "Global Standard PayGo", "rates": {"720p": 0.09, "1080p": 0.13, "1440p": 0.19, "2160p": 0.30}, "illustrative_duration_s": 6, "illustrative_resolution": "720p", "illustrative_est_cost_usd": 0.54, "requested_durations_s": [6, 8, 10, 12, 14, 16, 18, 20], "fps": [24, 25, 48, 50]},
-      {"model": "ltx-2.5-pro", "offering": "Global Standard PayGo", "rates": {"720p": 0.12, "1080p": 0.17}, "illustrative_duration_s": 6, "illustrative_resolution": "720p", "illustrative_est_cost_usd": 0.72, "requested_durations_s": [6, 8, 10], "fps": [24, 25, 50]},
-      {"model": "minimax-h3-max", "offering": "Global Standard PayGo", "rates": {"480P": 0.05, "768P": 0.08, "1080P": 0.16}, "illustrative_duration_s": 5, "illustrative_resolution": "480P", "illustrative_est_cost_usd": 0.25, "duration_range_s": [0.92, 15], "fps": null, "reference_to_video": true},
-      {"model": "minimax-h3-max-turbo", "offering": "Global Standard PayGo", "rates": {"480P": 0.025, "768P": 0.04, "1080P": 0.08}, "illustrative_duration_s": 5, "illustrative_resolution": "480P", "illustrative_est_cost_usd": 0.125, "duration_range_s": [0.92, 15], "fps": null, "reference_to_video": false}
-    ]
+      {
+        "model": "kling-v3-pro",
+        "offering": "US Data Zone",
+        "rates": {
+          "audio_off": 0.1232,
+          "audio_on": 0.1848,
+          "audio_and_voice_control": 0.2156
+        },
+        "illustrative_duration_s": 5,
+        "illustrative_est_cost_usd": 0.616,
+        "duration_range_s": [
+          3,
+          15
+        ],
+        "resolutions": null,
+        "fps": null
+      },
+      {
+        "model": "ltx-2.5-fast",
+        "offering": "Global Standard PayGo",
+        "rates": {
+          "720p": 0.09,
+          "1080p": 0.13,
+          "1440p": 0.19,
+          "2160p": 0.3
+        },
+        "illustrative_duration_s": 6,
+        "illustrative_resolution": "720p",
+        "illustrative_est_cost_usd": 0.54,
+        "requested_durations_s": [
+          6,
+          8,
+          10,
+          12,
+          14,
+          16,
+          18,
+          20
+        ],
+        "fps": [
+          24,
+          25,
+          48,
+          50
+        ]
+      },
+      {
+        "model": "ltx-2.5-pro",
+        "offering": "Global Standard PayGo",
+        "rates": {
+          "720p": 0.12,
+          "1080p": 0.17
+        },
+        "illustrative_duration_s": 6,
+        "illustrative_resolution": "720p",
+        "illustrative_est_cost_usd": 0.72,
+        "requested_durations_s": [
+          6,
+          8,
+          10
+        ],
+        "fps": [
+          24,
+          25,
+          50
+        ]
+      },
+      {
+        "model": "minimax-h3-max",
+        "offering": "Global Standard PayGo",
+        "rates": {
+          "480P": 0.05,
+          "768P": 0.08,
+          "1080P": 0.16
+        },
+        "illustrative_duration_s": 5,
+        "illustrative_resolution": "480P",
+        "illustrative_est_cost_usd": 0.25,
+        "duration_range_s": [
+          0.92,
+          15
+        ],
+        "fps": null,
+        "reference_to_video": true
+      },
+      {
+        "model": "minimax-h3-max-turbo",
+        "offering": "Global Standard PayGo",
+        "rates": {
+          "480P": 0.025,
+          "768P": 0.04,
+          "1080P": 0.08
+        },
+        "illustrative_duration_s": 5,
+        "illustrative_resolution": "480P",
+        "illustrative_est_cost_usd": 0.125,
+        "duration_range_s": [
+          0.92,
+          15
+        ],
+        "fps": null,
+        "reference_to_video": false
+      }
+    ],
+    "retail_prices_api": {
+      "retrieved_at": "2026-11-09T15:10:00-08:00",
+      "query": "https://prices.azure.com/api/retail/prices?$filter=productName eq 'Azure Fal' and armRegionName eq 'eastus2'",
+      "example": {
+        "meterName": "Fal Test MM H3 Mx Trb Txt-Vd 480 Video",
+        "unitOfMeasure": "1 Second",
+        "retailPrice": 0.025,
+        "armRegionName": "eastus2",
+        "effectiveStartDate": "2026-10-01"
+      },
+      "matches_launch_table": true,
+      "kling_meter_found": false
+    }
   },
-  "documented_quota_rpm": {"free": 0, "tiers_1_to_4": 2, "tiers_5_to_7": 40},
-  "measured_generation_results": []
+  "documented_quota_rpm": {
+    "free": 0,
+    "tiers_1_to_4": 2,
+    "tiers_5_to_7": 40
+  },
+  "measured_generation_results": [
+    {
+      "model": "minimax-h3-max-turbo",
+      "deployment": "fal-minimax-h3-max-turbo",
+      "region": "eastus2",
+      "route": "/providers/falai/v1/minimax/h3-max-turbo/text-to-video",
+      "request": {
+        "duration": 5,
+        "resolution": "480P",
+        "prompt_expansion_mode": "disabled"
+      },
+      "request_id": null,
+      "request_id_note": "Not captured; runner did not emit it then.",
+      "submitted_at": "2026-11-09T15:03:27-08:00",
+      "completed_at": "2026-11-09T15:04:17-08:00",
+      "seconds_end_to_end": 46.795,
+      "ffprobe": {
+        "container": "mov,mp4",
+        "duration_s": 5.184,
+        "size_bytes": 2042222,
+        "bit_rate": 3151577,
+        "video": {
+          "codec": "h264",
+          "profile": "Constrained Baseline",
+          "width": 832,
+          "height": 480,
+          "pix_fmt": "yuv420p",
+          "fps": "24/1",
+          "frames": 124,
+          "duration_s": 5.166667
+        },
+        "audio": {
+          "codec": "aac",
+          "profile": "LC",
+          "sample_rate": 32000,
+          "channels": 2,
+          "duration_s": 5.184
+        }
+      },
+      "sha256": "AE2B93A0B0877AE22070697902800ECBD51023467908CE46E5CD991175E0528E",
+      "azure_metrics": {
+        "SuccessfulCalls": "6 total: 3 at 23:04Z and 3 at 23:05Z (1-minute grain)",
+        "FoundryModelEstimatedCost": "no data yet"
+      },
+      "est_cost_usd": 0.125,
+      "est_cost_basis": "requested 5 s x 0.025 USD/s"
+    }
+  ]
 }

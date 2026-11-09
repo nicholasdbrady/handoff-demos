@@ -91,7 +91,7 @@ https://github.com/Azure/azure-dev/tree/main/cli/azd/extensions/azure.ai.agents
 <p class="caption">No live Local demo on this machine. The hardware boundary is part of the lesson.</p>
 
 <!--
-I want us to separate the SDK update from the hardware decision. Foundry Local SDK 2.3.0 adds a shared native model cache and inference and reliability improvements. CLI 0.13.0 is still preview. The Qwen coding walkthrough is a specific setup, not a minimum requirement for every Foundry Local model: its package is approximately 18 gigabytes and the example needs an NVIDIA GPU with at least 24 gigabytes of VRAM, plus CUDA and cuDNN setup. Our hardware does not meet that example, so I am using the architecture visual rather than pretending to run it. Local inference also does not make all surrounding Copilot operations offline.
+I want us to separate the SDK update from the hardware decision. Foundry Local SDK 2.3.0 adds a shared native model cache and inference and reliability improvements. CLI 0.13.0 is still preview. The Qwen coding walkthrough is a specific setup, not a minimum requirement for every Foundry Local model: its package is approximately 18 gigabytes and the example needs an NVIDIA GPU with at least 24 gigabytes of VRAM, plus CUDA and cuDNN setup. Our hardware does not meet that example, so I am using the architecture visual to explain model sharing and hardware fit. Local inference also does not make all surrounding Copilot operations offline.
 
 Sources, releases 2026-11-02/05, checked 2026-11-09:
 https://github.com/microsoft/Foundry-Local/releases/tag/v2.3.0
@@ -128,25 +128,44 @@ https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/building-the-next
 <ContextScale />
 
 <!--
-I am showing scale rather than promising that more tokens automatically produce better answers. Kimi K3.1 Pro is an open-weight model with text and image understanding and a context window of up to one million tokens. That creates room for large document sets, source code, and visual inputs in one request. Developers still need a retrieval and verification strategy, and must check the model catalog's preview status, supported input limits, availability, and cost. The shorter reference bars are illustrative scales, not a benchmark against named competing models. Our demonstration will make its actual capture or availability state visible on the next slide.
+I am showing scale rather than promising that more tokens automatically produce better answers. Kimi K3.1 Pro is open weight, accepts text and images, and provides roughly one million tokens of context. The November 5 announcement establishes its arrival. The current catalog and Learn lifecycle table, checked November 9, label version 2026-11-04 GA; I am not claiming an archived catalog label at the reporting cutoff. Developers still need to check input limits, region, cost, and whether the model uses the relevant evidence. The shorter reference bars illustrate scale. Our bounded document check is not a million-token capacity benchmark.
 
 Source, 2026-11-05, checked 2026-11-09:
 https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/moonshot-ai%E2%80%99s-kimi-k3-1-pro-comes-to-microsoft-foundry/4570292
+https://ai.azure.com/catalog/models/Kimi-K3.1-Pro (current catalog checked 2026-11-09)
+https://learn.microsoft.com/azure/foundry/openai/concepts/model-retirement-schedule#foundry-models-sold-by-azure (version 2026-11-04 listed GA, checked 2026-11-09)
 -->
 
 ---
 class: demo-slide
 ---
 
-# Kimi: inspect the text + image evidence.
+# Kimi: build a three.js scene.
 
-<DemoCapture slug="kimi-k3-1-pro" />
+<KimiComparison />
 
 <!--
-I will inspect the Kimi demonstration through the task it performs, the inputs it receives, and the result it produces. Text-plus-image input tests whether the model can connect visual evidence to the instruction; long context tests how it uses a larger working set. Neither establishes universal accuracy. The capture timestamp and environment make the result reproducible, while token and latency measurements describe this specific request. For developers, the next step is to check the produced artifact against the requested behavior, then compare another run under the same conditions. If a capture is unavailable, the preceding context-scale visual remains our walkthrough.
+I sent the identical kinetic-sculpture prompt at none, low, and high reasoning effort, with a twelve-thousand completion-token cap. The generated three.js documents are unedited; our wrapper provides the pinned runtime and an isolated frame, not code repairs. These captured calls used 4,833, 6,263, and 10,965 total tokens and took 18.78, 32.55, and 62.33 seconds. Reasoning tokens are included in output tokens, not an additional charge category. I will switch the setting, pause the scene, reset its view, and reveal the exact shared prompt. One sample per setting shows the work performed; it does not establish a causal quality ranking.
 
 Source, 2026-11-05, checked 2026-11-09:
 https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/moonshot-ai%E2%80%99s-kimi-k3-1-pro-comes-to-microsoft-foundry/4570292
+Capture measurements: 2026-11-09T09:00:40.715333Z; public/demos/kimi-k3-1-pro/manifest.json and recorded-results.json.
+-->
+
+---
+class: benchmark-slide
+---
+
+# Kimi: test a harder task.
+
+<DemoCapture class="capture-benchmark" slug="kimi-k3-1-pro-benchmark" asset-match="benchmark.html" />
+
+<!--
+I asked Kimi to read an image policy, select a route, join distributed records while rejecting stale epochs, and verify real SDK code facts. Each high-effort trial received 373,132 service-reported input tokens. All three attempted trials passed, with all thirty-three exact fields correct. Latencies were 37.3, 26.6, and 25.0 seconds; the median was 26.6 seconds. The uncached cost estimate totals about two dollars sixty, not a billing receipt. The source code is real; the planted routing records are fictional fixtures. This is a small bespoke benchmark, not a leaderboard or a million-token test. I can expand the exact prompt and grading.
+
+Source, model announcement 2026-11-05, checked 2026-11-09:
+https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/moonshot-ai%E2%80%99s-kimi-k3-1-pro-comes-to-microsoft-foundry/4570292
+Captured 2026-11-09T09:21:08.106280Z; public/demos/kimi-k3-1-pro-benchmark/manifest.json and recorded-results.json.
 -->
 
 ---
@@ -163,9 +182,10 @@ https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/moonshot-ai%E2%80
 <p class="lede">Development-time guidance is not a runtime dependency.</p>
 
 <!--
-I want to make this boundary unmistakable. Agent Framework builder skills guide a coding agent while it develops a .NET or Python application. They help it choose patterns and load the relevant framework guidance. They are not automatically runtime skills inside the application it ships, and the Python builder skill is not a Python package installed by that application. Runtime Agent Skills are a separate mechanism that an application explicitly uses. For developers, this avoids a common packaging mistake: confusing the assistant's development instructions with the deployed agent's capabilities. The next panel shows the builder workflow evidence without claiming that instructions alone prove the resulting app works.
+I want to make this boundary unmistakable. Agent Framework builder skills guide a coding agent while it develops a .NET or Python application. They help it choose patterns and load the relevant framework guidance. The November 4 guide recommends the smallest suitable pattern and pairing focused builder guidance with Microsoft Learn MCP for complete documentation. These skills are not automatically runtime skills inside the application it ships, and the Python builder skill is not a Python package installed by that application. For developers, this avoids confusing the assistant's development instructions with the deployed agent's capabilities. Pin the skill revision when you need a reproducible development environment.
 
-Sources, guide checked 2026-11-09:
+Sources, guide 2026-11-04, checked 2026-11-09:
+https://devblogs.microsoft.com/agent-framework/give-your-coding-agent-a-head-start-with-microsoft-agent-framework-skills-for-net-and-python/
 https://learn.microsoft.com/agent-framework/get-started/build-with-coding-agents
 https://learn.microsoft.com/agent-framework/agents/skills
 -->
@@ -179,9 +199,10 @@ class: demo-slide
 <DemoCapture slug="maf-skills" />
 
 <!--
-I will follow the coding agent from the builder instructions into the application it produces. The skill can guide framework selection, orchestration patterns, package usage, and the checks the assistant should run. Then I will inspect the resulting code and tests: useful development guidance is not itself proof of correct behavior. The capture panel keeps the transcript, artifacts, and measured environment together so another developer can understand the workflow. The important boundary is what ships. Builder instructions serve the coding assistant; the Agent Framework application must explicitly configure its own runtime tools, instructions, and skills.
+I will follow the coding agent from the builder instructions into the application it produces. The captured Python application called the add tool once with nineteen and twenty-three, then returned forty-two. Its measured live run took 10.602 seconds. I can inspect the installed guidance, generated code, and execution transcript separately. The skill helps the coding assistant choose framework patterns and checks; it is not imported by the shipped application. The application configures its own Foundry client, instructions, and function tool. For developers, that gives us two review boundaries: check the assistant's development work, then check what the deployed application actually does.
 
-Sources, guide checked 2026-11-09:
+Sources, guide 2026-11-04, checked 2026-11-09:
+https://devblogs.microsoft.com/agent-framework/give-your-coding-agent-a-head-start-with-microsoft-agent-framework-skills-for-net-and-python/
 https://learn.microsoft.com/agent-framework/get-started/build-with-coding-agents
 https://github.com/microsoft/agent-framework/tree/main/skills
 -->
@@ -236,6 +257,8 @@ I am separating recently documented features from the version synchronization re
 Sources, recent notes and sync checked 2026-11-09:
 https://github.com/microsoft/foundry-dev-tools/blob/main/microsoft-foundry/changelog.md
 https://github.com/microsoft/foundry-dev-tools/tree/main/microsoft-foundry
+https://github.com/microsoft/foundry-dev-tools/commit/bba484bffc275cc9640f61b7b7357be0f943e16b (1.0.19 sync, 2026-11-05T07:06:01Z)
+https://devblogs.microsoft.com/foundry/microsoft-copilot-harness-in-foundry/ (2026-10-28 preview announcement; pre-window context)
 -->
 
 ---
@@ -336,7 +359,7 @@ class: demo-slide
 <DemoCapture slug="azd-agent" />
 
 <!--
-I will start with the deployment intent in azure.yaml: which agent code runs, how the project is selected, and which resources the workflow needs. Then I will use Agent Inspector to examine a local request before moving to hosted execution. A partial capture is useful when we state which stage completed and what the next prerequisite is. The GA walkthrough uses source upload and a remote build, so it does not require a local container build. For developers, the reusable lesson is to keep the configuration review, local behavior check, and hosted deployment result as three distinct, observable boundaries.
+I will start with the reviewed azure.yaml: agent code, project dependency, model version, deployment type, and runtime resources. The recorded Agent Inspector screenshot shows a real local request that took 396.8 seconds; I will show that as recorded evidence, not repeat it as our live path. The captured hosted invocation took about 11.9 seconds. The Run live button makes a new hosted request using our server-side configuration and Azure CLI identity. Source upload and remote build avoid requiring a local container build. For developers, configuration review, local inspection, and hosted execution are distinct checks; none substitutes for the others.
 
 Sources, workflow checked 2026-11-09:
 https://github.com/Azure/azure-dev/tree/main/cli/azd/extensions/azure.ai.agents
@@ -369,7 +392,7 @@ class: chapter
 <div class="brief-window"><strong>Same prompt</strong><span>→</span><strong>Fast draft</strong><span>→</span><strong>Quality pass</strong></div>
 
 <!--
-I will compare the model options through the question of when a fast draft is more useful than a higher-quality render. A draft can answer composition and direction questions before we pay for a final pass. That is a workflow hypothesis, not a measured ranking from this show. The fal models are in public preview, with model-specific availability and pricing. Our subscription does not have the required fal deployment access, and enabling it requires terms acceptance; no registration or provisioning has occurred. I will use the source-based portfolio comparison and the explicit unavailable state rather than fabricate a same-prompt generation result.
+I will compare the model options through the question of when a fast draft is more useful than a higher-quality render. A draft can answer composition and direction questions before we pay for a final pass. That is a workflow hypothesis, not a measured ranking from this show. The fal models are in public preview, with model-specific availability and pricing. Our subscription does not have the required fal deployment access, and enabling it requires terms acceptance; no registration or provisioning has occurred. I will use the portfolio comparison to choose a starting model and explain which prompt, timing, quality, and cost evidence a real comparison needs.
 
 Source, 2026-11-05, checked 2026-11-09:
 https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/building-the-next-generation-of-multimodal-ai-experiences-with-fal-in-microsoft-/4570032

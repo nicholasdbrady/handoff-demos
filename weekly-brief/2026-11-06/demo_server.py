@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import socket
 import subprocess
 import tempfile
 import threading
@@ -18,7 +19,16 @@ from dotenv import load_dotenv
 
 HERE = Path(__file__).resolve().parent
 load_dotenv(HERE / ".env", override=False)
-SLUGS = frozenset({"azd-agent", "fal-video", "kimi-k3-1-pro", "maf-skills"})
+SLUGS = frozenset({"azd-agent", "fal-video", "kimi-k3-1-pro", "kimi-k3-1-pro-benchmark", "maf-skills"})
+ENDPOINTS = {
+    "azd-agent": "AZD_AGENT_PROJECT_ENDPOINT", "maf-skills": "FOUNDRY_PROJECT_ENDPOINT",
+    "kimi-k3-1-pro": "KIMI_ENDPOINT", "fal-video": "FOUNDRY_RESOURCE_ENDPOINT",
+    "kimi-k3-1-pro-benchmark": "KIMI_ENDPOINT",
+}
+RUN_OPTIONS = {
+    "kimi-k3-1-pro": ["--mode", "scene", "--effort", "none", "--max-tokens", "12000"],
+    "kimi-k3-1-pro-benchmark": ["--trial", "1", "--effort", "high", "--max-tokens", "4096"],
+}
 ORIGINS = frozenset({"http://127.0.0.1:3080", "http://localhost:3080"})
 TIMEOUT = 350
 OUTPUT_LIMIT = 1_000_000
@@ -36,12 +46,12 @@ def run_demo(slug: str) -> dict:
         raise DemoError(404, "Unknown demo.")
     if os.environ.get("SLIDEV_ENABLE_LIVE") != "1":
         raise DemoError(409, "Live mode is disabled. Set SLIDEV_ENABLE_LIVE=1 and restart the adapter.")
-    for name in ("AZURE_AI_PROJECT_ENDPOINT", "FOUNDRY_PROJECT_ENDPOINT"):
-        endpoint = os.environ.get(name, "").strip()
-        if endpoint:
-            parsed = urlsplit(endpoint)
-            if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password or parsed.query or parsed.fragment:
-                raise DemoError(400, f"{name} must be an HTTPS project URL without credentials, query, or fragment.")
+    name = ENDPOINTS[slug]
+    endpoint = os.environ.get(name, "").strip()
+    if endpoint:
+        parsed = urlsplit(endpoint)
+        if parsed.scheme != "https" or not parsed.hostname or parsed.username or parsed.password or parsed.query or parsed.fragment:
+            raise DemoError(400, f"{name} must be an HTTPS URL without credentials, query, or fragment.")
     manifest_path = HERE / "public" / "demos" / slug / "manifest.json"
     if not manifest_path.is_file():
         raise DemoError(409, "This demo has no capture manifest yet.")
@@ -62,7 +72,7 @@ def run_demo(slug: str) -> dict:
         # File-backed output prevents an unbounded subprocess pipe from exhausting memory.
         with tempfile.TemporaryFile() as stdout, tempfile.TemporaryFile() as stderr:
             process = subprocess.Popen(
-                ["uv", "run", str(script), "--json"], cwd=HERE,
+                ["uv", "run", str(script), "--json", *RUN_OPTIONS.get(slug, [])], cwd=HERE,
                 stdout=stdout, stderr=stderr,
                 creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if os.name == "nt" else 0,
                 start_new_session=os.name != "nt",
@@ -83,7 +93,14 @@ def run_demo(slug: str) -> dict:
             output = stdout.read(OUTPUT_LIMIT + 1)
             diagnostic = stderr.read(16_000).decode("utf-8", errors="replace").strip()
             if process.returncode:
-                raise DemoError(502, f"Runner exited {process.returncode}. {diagnostic or output[:16_000].decode('utf-8', errors='replace')}")
+                failure = output[:16_000].decode("utf-8", errors="replace").strip()
+                try:
+                    error_result = json.loads(failure)
+                except ValueError:
+                    error_result = None
+                if isinstance(error_result, dict) and isinstance(error_result.get("error"), str):
+                    failure = error_result["error"]
+                raise DemoError(502, f"Runner exited {process.returncode}. {failure or diagnostic}")
             if len(output) > OUTPUT_LIMIT:
                 raise DemoError(502, "Runner output exceeded the JSON size limit.")
             try:
@@ -147,8 +164,17 @@ class Handler(BaseHTTPRequestHandler):
         print(f"demo-adapter: {format % args}", flush=True)
 
 
+class DemoServer(ThreadingHTTPServer):
+    allow_reuse_address = False
+
+    def server_bind(self) -> None:
+        if hasattr(socket, "SO_EXCLUSIVEADDRUSE"):
+            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+        super().server_bind()
+
+
 def main() -> None:
-    server = ThreadingHTTPServer(("127.0.0.1", 8780), Handler)
+    server = DemoServer(("127.0.0.1", 8780), Handler)
     print("Demo adapter listening at http://127.0.0.1:8780", flush=True)
     try:
         server.serve_forever()

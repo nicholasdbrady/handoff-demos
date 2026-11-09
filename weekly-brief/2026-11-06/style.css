@@ -16,7 +16,7 @@
 .brief-window { display: flex; gap: 32px; align-items: center; margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--rule); font-size: 23px; }
 .brief-window span { color: var(--ink-soft); }
 .brief-status { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin: 24px 0; }
-.badge { display: inline-block; font-size: 16px; border: 1px solid var(--accent); color: var(--accent-strong); border-radius: 5px; padding: 5px 10px; }
+.badge { display: inline-block; font-size: 16px; border: 1px solid var(--accent); color: var(--accent-strong); border-radius: var(--radius-control); padding: 5px 10px; }
 .brief-diagram { display: block; width: 100%; height: 240px; margin: 24px 0; }
 .brief-diagram rect { fill: var(--surface-raised); stroke: var(--rule); stroke-width: 2; }
 .brief-diagram path { fill: none; stroke: var(--accent); stroke-width: 3; }
@@ -38,22 +38,25 @@
 .brief-secondary { color: var(--ink); background: var(--surface-raised); border-color: var(--control-border); }
 .brief-secondary:hover, .brief-secondary[aria-pressed="true"] { background: var(--surface-hover); color: var(--ink); }
 .brief-error { color: var(--error-text); background: var(--error-bg); padding: 12px 16px; font-size: 17px; overflow-wrap: anywhere; }
-.capture-demo { font-size: 18px; position: relative; }
+.capture-demo { font-size: 17px; position: relative; }
 .capture-toolbar { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
-.capture-time { font: 14px var(--font-mono); color: var(--ink-soft); margin-right: auto; }
+.capture-time { font: 16px var(--font-mono); color: var(--ink-soft); margin-right: auto; }
+.capture-metrics { display: flex; flex-wrap: wrap; gap: 8px 20px; padding: 8px 0 14px; font: 16px var(--font-mono); color: var(--ink-soft); }
+.capture-metrics strong { color: var(--ink); }
+.capture-picker { display: flex; gap: 12px; align-items: center; font-size: 16px; margin-bottom: 12px; }
+.capture-picker select { min-width: 0; flex: 1; font: 16px var(--font-sans); color: var(--ink); background: var(--surface-raised); border: 1px solid var(--control-border); border-radius: var(--radius-control); padding: 8px; }
 .capture-body { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr); gap: 28px; height: 420px; }
 .capture-media { min-width: 0; overflow: auto; }
-.capture-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
-.capture-tabs .brief-button { font-size: 14px; padding: 6px 9px; }
 .capture-media figure { margin: 0; }
 .capture-media :is(img, video) { width: 100%; max-height: 335px; object-fit: contain; background: var(--surface-muted); }
-.capture-media figcaption { font-size: 16px; color: var(--ink-soft); margin-top: 8px; }
-.slidev-layout .capture-transcript { height: 310px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 15px !important; line-height: 1.45 !important; padding: 16px !important; background: var(--surface-raised); border: 1px solid var(--rule); }
+.capture-media figcaption { font-size: 19px; color: var(--ink-soft); margin-top: 8px; }
+.capture-artifact { width: 100%; height: 335px; border: 1px solid var(--rule); background: var(--surface-muted); }
+.slidev-layout .capture-transcript { height: 310px; overflow: auto; white-space: pre-wrap; overflow-wrap: anywhere; font-size: 20px !important; line-height: 1.45 !important; padding: 16px !important; background: var(--surface-raised); border: 1px solid var(--rule); }
 .capture-details { overflow: auto; }
 .capture-details h2 { font-size: 24px; }
 .capture-details p { font-size: 17px; margin-bottom: 16px; }
 .capture-details summary { font-size: 16px; cursor: pointer; margin-bottom: 10px; }
-.slidev-layout .capture-details pre, .slidev-layout .capture-live pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 14px !important; line-height: 1.4 !important; padding: 12px !important; }
+.slidev-layout .capture-details pre, .slidev-layout .capture-live pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 17px !important; line-height: 1.4 !important; padding: 12px !important; }
 .capture-empty { padding: 30px 40px; background: var(--surface-muted); border: 1px solid var(--rule); border-radius: var(--radius-panel); text-align: center; }
 .capture-empty svg { width: 520px; max-width: 100%; height: 140px; margin: 0 auto 16px; }
 .capture-empty svg rect { fill: var(--surface-raised); stroke: var(--rule); stroke-width: 2; }
@@ -62,3 +65,25 @@
 .capture-empty p { font-size: 23px; }
 .capture-live { position: absolute; bottom: 0; left: 0; width: 100%; max-height: 300px; overflow: auto; background: var(--surface-raised); border: 1px solid var(--rule); padding: 16px; }
 .capture-live .live-signal { font-size: 16px; }
+.kimi-comparison { position: relative; }
+.kimi-stage { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr); gap: 28px; }
+.kimi-efforts { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.kimi-efforts span { font-size: 16px; color: var(--ink-soft); margin-left: 10px; }
+.kimi-artifact { width: 100%; height: 380px; border: 1px solid var(--rule); background: var(--stage-ground); }
+.kimi-stage h2 { font-size: 26px; }
+.kimi-stage p { font-size: 19px; }
+.slidev-layout .kimi-metrics { font-size: 19px; margin-bottom: 24px; }
+.slidev-layout .kimi-metrics :is(th, td) { padding: 12px 8px; }
+.kimi-metrics td { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+.kimi-prompt { margin-top: 12px; font-size: 17px; }
+.kimi-prompt summary { cursor: pointer; }
+.slidev-layout .kimi-prompt pre { max-height: 230px; overflow: auto; font-size: 16px !important; white-space: pre-wrap; padding: 16px !important; }
+.kimi-prompt[open] { position: absolute; bottom: 0; left: 0; right: 0; background: var(--surface-raised); border: 1px solid var(--rule); padding: 16px; }
+.slidev-layout.benchmark-slide { padding: 0; }
+.benchmark-slide > h1 { display: none; }
+.capture-benchmark { position: relative; width: 1280px; height: 720px; }
+.capture-benchmark .capture-toolbar { position: absolute; bottom: 12px; left: 40px; right: 40px; z-index: 2; margin: 0; padding: 8px 12px; background: var(--surface-raised); border: 1px solid var(--rule); }
+.capture-benchmark .capture-body { display: block; }
+.capture-benchmark :is(.capture-details, .capture-metrics, figcaption) { display: none; }
+.capture-benchmark .capture-media, .capture-benchmark figure { margin: 0; padding: 0; max-height: none; overflow: visible; }
+.capture-benchmark .capture-artifact { display: block; width: 1280px; height: 720px; max-height: none; border: 0; }

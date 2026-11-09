@@ -7,12 +7,13 @@ type Manifest = {
   environment: Record<string, unknown>; assets: Asset[]; metrics: Record<string, unknown>
   live: { supported: boolean; command?: string; typical_seconds?: number }; caveats: string[]
 }
-const props = defineProps<{ slug: string }>()
+const props = defineProps<{ slug: string; assetMatch?: string }>()
 const manifest = ref<Manifest>()
 const selected = ref(0)
 const captureError = ref('')
 const text = ref('')
 const textError = ref('')
+const mediaError = ref('')
 const loading = ref(true)
 const running = ref(false)
 const liveEnabled = ref(false)
@@ -22,6 +23,14 @@ let interval: ReturnType<typeof setInterval> | undefined
 let alive = true
 let textRevision = 0
 const asset = computed(() => manifest.value?.assets[selected.value])
+const headlineMetrics = computed(() => Object.entries(manifest.value?.metrics ?? {}).filter(([, value]) => typeof value === 'number').slice(0, 4))
+const viewPending = computed(() => Boolean(props.assetMatch && manifest.value && manifest.value.status !== 'unavailable' && !manifest.value.assets.length))
+const htmlAsset = computed(() => asset.value?.kind === 'text' && /\.html?$/i.test(asset.value.path))
+const isolatedHtml = computed(() => {
+  if (!htmlAsset.value || !text.value) return ''
+  const policy = "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; script-src 'unsafe-inline' blob:; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; font-src data:; media-src data: blob:; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'\">"
+  return `${policy}${text.value}`
+})
 const captured = computed(() => {
   const timestamp = manifest.value?.captured_at
   if (!timestamp) return 'Capture time not supplied'
@@ -42,6 +51,10 @@ function parseManifest(value: unknown): Manifest {
     || !Array.isArray(data.assets) || !Array.isArray(data.caveats)
     || !data.live || typeof data.live !== 'object' || typeof (data.live as Record<string, unknown>).supported !== 'boolean')
     throw new Error('Capture manifest does not match the demo contract.')
+  if (typeof data.title !== 'string' || typeof data.captured_at !== 'string'
+    || !data.environment || typeof data.environment !== 'object' || Array.isArray(data.environment)
+    || !data.metrics || typeof data.metrics !== 'object' || Array.isArray(data.metrics))
+    throw new Error('Capture manifest is missing title, timestamp, environment, or metrics.')
   const assets: Asset[] = []
   for (const item of data.assets) {
     if (!item || typeof item !== 'object' || typeof item.path !== 'string' || typeof item.caption !== 'string'
@@ -52,13 +65,14 @@ function parseManifest(value: unknown): Manifest {
   }
   if (!data.caveats.every(item => typeof item === 'string')) throw new Error('Capture caveats must be text.')
   const live = data.live as Record<string, unknown>
-  const record = (item: unknown): Record<string, unknown> => item && typeof item === 'object' && !Array.isArray(item) ? item as Record<string, unknown> : {}
+  const assetMatch = props.assetMatch?.toLowerCase()
   const status = String(data.status)
   if (status !== 'ready' && status !== 'partial' && status !== 'unavailable') throw new Error('Unknown demo status.')
   return {
-    slug: props.slug, title: typeof data.title === 'string' ? data.title : props.slug,
-    status, captured_at: typeof data.captured_at === 'string' ? data.captured_at : '',
-    assets, environment: record(data.environment), metrics: record(data.metrics),
+    slug: props.slug, title: data.title,
+    status, captured_at: data.captured_at,
+    assets: assetMatch ? assets.filter(item => item.path.toLowerCase().includes(assetMatch)) : assets,
+    environment: data.environment as Record<string, unknown>, metrics: data.metrics as Record<string, unknown>,
     live: { supported: live.supported === true, command: typeof live.command === 'string' ? live.command : undefined,
       typical_seconds: typeof live.typical_seconds === 'number' ? live.typical_seconds : undefined },
     caveats: data.caveats,
@@ -88,13 +102,15 @@ async function loadText() {
   const revision = ++textRevision
   text.value = ''
   textError.value = ''
+  mediaError.value = ''
   if (!asset.value || ['video', 'image'].includes(asset.value.kind)) return
   try {
     const response = await fetch(assetUrl(asset.value.path), { cache: 'no-store' })
-    if (!response.ok || response.headers.get('content-type')?.includes('text/html'))
+    if (!response.ok || (!htmlAsset.value && response.headers.get('content-type')?.includes('text/html')))
       throw new Error(`Capture file is unavailable (HTTP ${response.status}).`)
     const content = await response.text()
-    if (alive && revision === textRevision) text.value = content.slice(0, 100_000)
+    if (content.length > 4_000_000) throw new Error('Capture file exceeds the 4 MB display limit.')
+    if (alive && revision === textRevision) text.value = content
   } catch (error) {
     if (alive && revision === textRevision) textError.value = error instanceof Error ? error.message : String(error)
   }
@@ -129,15 +145,18 @@ onUnmounted(() => { alive = false; if (interval) clearInterval(interval) })
 <template>
   <section class="capture-demo" :aria-label="`${slug} demo`">
     <div class="capture-toolbar">
-      <span class="badge">{{ manifest?.status ?? (loading ? 'Loading capture' : 'Pending capture') }}</span>
-      <span class="capture-time">{{ manifest ? `Captured ${captured}` : 'Waiting for the demo manifest' }}</span>
+      <span class="badge">{{ viewPending ? 'Pending capture' : manifest?.status ?? (loading ? 'Loading capture' : 'Pending capture') }}</span>
+      <span class="capture-time">{{ manifest && !viewPending ? `Captured ${captured}` : 'Waiting for this example’s capture' }}</span>
       <button class="brief-button brief-secondary" @click="refresh">Refresh capture</button>
-      <button v-if="manifest?.live.supported" class="brief-button" :disabled="running || !liveEnabled" @click="runLive">
+      <button v-if="manifest?.live.supported && !viewPending" class="brief-button" :disabled="running || !liveEnabled" @click="runLive">
         {{ running ? 'Running live…' : 'Run live' }}
       </button>
     </div>
+    <div v-if="headlineMetrics.length && !viewPending" class="capture-metrics" aria-label="Captured measurements">
+      <span v-for="[name, value] in headlineMetrics" :key="name"><strong>{{ value }}</strong> {{ name.replaceAll('_', ' ') }}</span>
+    </div>
     <p v-if="captureError" role="alert" class="brief-error">{{ captureError }}</p>
-    <div v-else-if="!manifest" class="capture-empty">
+    <div v-else-if="!manifest || viewPending" class="capture-empty">
       <svg viewBox="0 0 520 140" role="img" aria-label="Runner, capture, and slide waiting for captured evidence">
         <rect x="10" y="35" width="130" height="70" rx="12" /><path d="M140 70h50m-10-8 10 8-10 8" />
         <rect x="190" y="35" width="140" height="70" rx="12" /><path d="M330 70h50m-10-8 10 8-10 8" />
@@ -150,16 +169,23 @@ onUnmounted(() => { alive = false; if (interval) clearInterval(interval) })
     <template v-else>
       <div class="capture-body">
         <div class="capture-media">
-          <div v-if="manifest.assets.length > 1" class="capture-tabs" aria-label="Captured assets">
-            <button v-for="(item, index) in manifest.assets" :key="item.path" class="brief-button brief-secondary"
-              :aria-pressed="selected === index" @click="selected = index">{{ item.caption }}</button>
-          </div>
+          <label v-if="manifest.assets.length > 1" class="capture-picker">Captured asset
+            <select v-model="selected" aria-label="Captured asset">
+              <option v-for="(item, index) in manifest.assets" :key="item.path" :value="index">{{ item.caption }}</option>
+            </select>
+          </label>
           <figure v-if="asset">
-            <video v-if="asset.kind === 'video'" :key="asset.path" controls preload="metadata" :src="assetUrl(asset.path)" :aria-label="asset.alt" />
-            <img v-else-if="asset.kind === 'image'" :src="assetUrl(asset.path)" :alt="asset.alt" />
+            <video v-if="asset.kind === 'video'" :key="asset.path" controls preload="metadata" :src="assetUrl(asset.path)" :aria-label="asset.alt"
+              @error="mediaError = 'Captured video could not load. Refresh the capture or inspect the demo files.'" />
+            <img v-else-if="asset.kind === 'image'" :src="assetUrl(asset.path)" :alt="asset.alt"
+              @error="mediaError = 'Captured image could not load. Refresh the capture or inspect the demo files.'" />
             <p v-else-if="textError" role="alert" class="brief-error">{{ textError }}</p>
+            <iframe v-else-if="htmlAsset && isolatedHtml" class="capture-artifact" :srcdoc="isolatedHtml"
+              sandbox="allow-scripts" referrerpolicy="no-referrer" :title="asset.alt"
+              allow="camera 'none'; microphone 'none'; geolocation 'none'; payment 'none'; clipboard-read 'none'; clipboard-write 'none'" />
             <pre v-else class="capture-transcript" tabindex="0">{{ text || 'Loading captured text…' }}</pre>
             <figcaption>{{ asset.caption }}</figcaption>
+            <p v-if="mediaError" role="alert" class="brief-error">{{ mediaError }}</p>
           </figure>
           <div v-else class="capture-empty">
             <h2>{{ manifest.status === 'unavailable' ? 'Demo unavailable' : 'No captured assets' }}</h2>

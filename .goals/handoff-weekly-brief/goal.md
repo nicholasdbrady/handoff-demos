@@ -24,9 +24,15 @@ Acceptance criteria:
   overflow or unexpected console/runtime errors. Presenter view exposes notes
   on every slide. Save full captures and key before/after images in session files.
 - One fresh independent Inspector checks all rendered slides and acceptance
-  evidence after the baseline is stable; repair material findings.
+  evidence after final integration, including both Kimi examples and clean
+  startup; repair material findings.
+- Provide a deck-level non-secret `.env.example`, ignored `.env`, exact
+  feature-branch clone instructions, prerequisite versions, ports, and optional
+  live adapter steps. Example-only configuration starts without Azure credentials.
+  Configured live commands work when access is available; configuration and
+  endpoint failures remain actionable. No keys enter browser assets or manifests.
 - Preview port 3080 and adapter port 8780 remain persistent and responsive.
-- Update the root README. Save a local commit and report its ID for coordinator
+- Update the root README. Commit and push the source branch; report its ID for coordinator
   integration. Do not open or merge a new PR under the corrected assignment.
 - Publish a verified preview and report usable URLs, ordered slide coverage,
   demo states, source-driven content changes, and unresolved limits.

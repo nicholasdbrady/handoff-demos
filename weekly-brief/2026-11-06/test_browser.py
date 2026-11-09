@@ -10,6 +10,7 @@ from playwright.sync_api import sync_playwright
 
 def notes_from_source() -> list[str]:
     text = Path(__file__).with_name("slides.md").read_text(encoding="utf-8")
+    assert re.findall(r"^# ([1-9])\. ", text, re.M) == list("123456789"), "Ranked updates must remain in supplied order"
     notes = re.findall(r"<!--\s*(.*?)\s*-->", text, re.S)
     assert len(notes) >= 24, f"Expected complete baseline coverage, got {len(notes)} notes"
     for index, note in enumerate(notes, 1):
@@ -34,12 +35,15 @@ def main() -> None:
     with sync_playwright() as playwright:
         browser = playwright.chromium.launch(channel="msedge", headless=True)
         context = browser.new_context(viewport={"width": 1280, "height": 720})
-        context.add_init_script("""localStorage.setItem('slidev-sync-directions', JSON.stringify({
+        context.add_init_script("""if (window === window.top) localStorage.setItem('slidev-sync-directions', JSON.stringify({
           viewerSend:false, viewerReceive:false, presenterSend:false, presenterReceive:false
         }))""")
         page = context.new_page()
         page.on("pageerror", lambda error: errors.append(str(error)))
         page.on("console", lambda message: errors.append(message.text) if message.type == "error" else None)
+        page.goto(f"{args.url}/presenter/1", wait_until="networkidle", timeout=90_000)
+        counters = re.findall(r"\b\d+\s*/\s*(\d+)\b", page.locator("body").inner_text())
+        assert counters and int(counters[-1]) == len(notes), "Rendered slide count must match notes; check slide separators."
         for width, height in [(1280, 720), (1920, 1080)]:
             page.set_viewport_size({"width": width, "height": height})
             for theme in ["light", "dark"]:
@@ -101,7 +105,8 @@ def main() -> None:
             )
             evidence.append({"presenter_slide": index, "notes_visible": True})
         page.screenshot(path=str(args.output / f"{args.phase}-presenter.png"))
-        page.goto(f"{args.url}/13", wait_until="networkidle")
+        verification_slide = next(index for index, note in enumerate(notes, 1) if "ThinkingBox evaluates executable tasks" in note)
+        page.goto(f"{args.url}/{verification_slide}", wait_until="networkidle")
         page.get_by_role("button", name="Check final state", exact=True).click()
         page.get_by_text("report.csv is missing", exact=True).wait_for()
         page.screenshot(path=str(args.output / f"{args.phase}-verified-state-interaction.png"))
@@ -112,7 +117,7 @@ def main() -> None:
     (args.output / f"{args.phase}-evidence.json").write_text(json.dumps(result, indent=2), encoding="utf-8")
     assert not defects, json.dumps(defects, indent=2)
     assert not errors, "\n".join(errors)
-    print(f"Edge: all {len(notes)} slides, 96 theme/resolution captures, all presenter notes visible; no overflow or runtime errors.")
+    print(f"Edge: all {len(notes)} slides, {len(notes) * 4} theme/resolution captures, all presenter notes visible; no overflow or runtime errors.")
 
 
 if __name__ == "__main__":

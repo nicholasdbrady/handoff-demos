@@ -2,18 +2,20 @@
   "checked_on": "2026-11-09",
   "method": "Active-browser Playwright MCP bridge",
   "viewports": [
-    {"width": 1920, "height": 1080, "scroll_width": 1920, "overview_bottom_px": 660.6375122070312, "minimum_label_px": 24},
-    {"width": 1280, "height": 720, "scroll_width": 1265, "overview_bottom_px": 691.8375244140625, "minimum_label_px": 24},
-    {"width": 390, "height": 844, "scroll_width": 375, "overview_bottom_px": 1779.800048828125, "minimum_label_px": 24}
+    {"width": 1280, "height": 620, "scroll_width": 1265, "overview_bottom_px": 564.6375122070312, "evidence_controls_bottom_px": 612.6375122070312, "minimum_label_px": 24},
+    {"width": 1280, "height": 720, "scroll_width": 1280, "overview_bottom_px": 564.6375122070312, "evidence_controls_bottom_px": 612.6375122070312, "minimum_label_px": 24}
   ],
   "desktop_overview_fits": true,
+  "native_deck_safe_height_px": 620,
+  "reserved_bottom_px": 80,
+  "all_closed_evidence_controls_fit": true,
   "horizontal_overflow": false,
   "mobile_vertical_scrolling_expected": true,
   "evidence_sections_may_require_scrolling": true,
   "sandbox": {
     "attribute": "allow-scripts",
     "allow_same_origin": false,
-    "result": "3/3 trials passed \u00b7 33/33 exact answers",
+    "result": "3/3 passed \u00b7 33/33 exact answers",
     "prompt_expansion_passed": true
   },
   "screenshot": "overview.png",

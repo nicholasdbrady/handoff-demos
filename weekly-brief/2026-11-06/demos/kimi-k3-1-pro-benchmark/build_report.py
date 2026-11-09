@@ -69,7 +69,7 @@ def build() -> dict:
             {"path": BASE + f"provenance-{i}.json", "kind": "json", "caption": f"Pinned public source and fixture positions, trial {i}", "alt": "Source commit, corpus hash, and distributed fixture offsets."},
         ])
     for name, kind, caption, alt in [
-        ("overview.png", "image", "Verified 1920 x 1080 benchmark overview", "Actual browser capture of measured outcomes and the input policy."),
+        ("overview.png", "image", "Verified 1280 x 720 toolbar-safe benchmark overview", "Actual browser capture with essential content and evidence controls above 620px."),
         ("browser-validation.json", "json", "Recorded browser layout and sandbox checks", "Desktop fit, mobile width, 24px labels, and opaque-origin sandbox behavior."),
     ]:
         if (PUBLIC / name).is_file():

@@ -72,8 +72,8 @@
     {
       "path": "/demos/kimi-k3-1-pro-benchmark/overview.png",
       "kind": "image",
-      "caption": "Verified 1920 x 1080 benchmark overview",
-      "alt": "Actual browser capture of measured outcomes and the input policy."
+      "caption": "Verified 1280 x 720 toolbar-safe benchmark overview",
+      "alt": "Actual browser capture with essential content and evidence controls above 620px."
     },
     {
       "path": "/demos/kimi-k3-1-pro-benchmark/browser-validation.json",

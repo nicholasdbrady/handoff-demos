@@ -122,7 +122,8 @@ The overview uses navy/cobalt, IBM Plex, and labels at least 24px. Expand the
 prompt/grading and usage/model-status sections for the full evidence.
 The image-policy table is an authored transcription for projector legibility,
 not a model response. The unmodified actual input image is in its own
-expandable section. The essential overview fits 1280 x 720 and 1920 x 1080;
+expandable section. Essential text and all three evidence controls fit within
+1280 x 620, reserving the bottom 80px of the native 1280 x 720 deck for its toolbar;
 mobile and expanded evidence scroll vertically. `overview.png` and
 `browser-validation.json` preserve the observed browser checks.
 The single font family is intentional; 52px headings, 30px result text,

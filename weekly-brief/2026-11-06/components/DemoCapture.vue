@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
-type Asset = { path: string; kind: 'video' | 'image' | 'json' | 'text' | 'transcript'; caption: string; alt: string; poster?: string; prompt?: string }
+type Asset = { path: string; kind: 'video' | 'image' | 'json' | 'text' | 'transcript'; caption: string; alt: string; poster?: string; prompt?: string; modelName?: string; label?: string }
 type Manifest = {
   slug: string; title: string; status: 'ready' | 'partial' | 'unavailable'; captured_at: string
   environment: Record<string, unknown>; assets: Asset[]; metrics: Record<string, unknown>
@@ -23,6 +23,18 @@ let interval: ReturnType<typeof setInterval> | undefined
 let alive = true
 let textRevision = 0
 const asset = computed(() => manifest.value?.assets[selected.value])
+const player = ref<HTMLVideoElement>()
+const promptChoices = computed(() => {
+  const assets = manifest.value?.assets ?? []
+  return assets.length > 1 && assets.every(item => item.kind === 'video' && item.prompt) ? assets : []
+})
+function choose(index: number, event?: Event) {
+  // Return focus to the deck so arrow keys and presentation clickers keep navigating.
+  (event?.currentTarget as HTMLElement | undefined)?.blur()
+  if (index === selected.value) return
+  player.value?.pause()
+  selected.value = index
+}
 const displayedText = computed(() => text.value.replace(
   /\b\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2}))?\b/g,
   value => new Date(value).toLocaleDateString('en-US', { timeZone: value.includes('T') ? 'America/Los_Angeles' : 'UTC', month: 'short', day: '2-digit' }),
@@ -75,7 +87,8 @@ function parseManifest(value: unknown): Manifest {
     if (item.poster !== undefined && typeof item.poster !== 'string') throw new Error('Capture poster must be a path.')
     if (item.prompt !== undefined && typeof item.prompt !== 'string') throw new Error('Capture prompt must be text.')
     if (item.poster) assetUrl(item.poster)
-    assets.push({ path: item.path, kind: item.kind, caption: item.caption, alt: item.alt, poster: item.poster, prompt: item.prompt })
+    assets.push({ path: item.path, kind: item.kind, caption: item.caption, alt: item.alt, poster: item.poster, prompt: item.prompt,
+      modelName: typeof item.model_name === 'string' ? item.model_name : undefined, label: typeof item.label === 'string' ? item.label : undefined })
   }
   if (!data.caveats.every(item => typeof item === 'string')) throw new Error('Capture caveats must be text.')
   const live = data.live as Record<string, unknown>
@@ -145,6 +158,11 @@ async function runLive() {
   } finally { running.value = false }
 }
 watch(asset, loadText)
+// Slidev hides inactive slides; pause so a clip's audio never continues off-slide.
+const root = ref<HTMLElement>()
+const leaveObserver = typeof IntersectionObserver === 'undefined' ? undefined
+  : new IntersectionObserver(entries => { if (entries.some(entry => !entry.isIntersecting)) player.value?.pause() })
+watch(root, element => { if (element) leaveObserver?.observe(element) })
 onMounted(async () => {
   await refresh()
   interval = setInterval(refresh, 30_000)
@@ -153,11 +171,11 @@ onMounted(async () => {
     if (response.ok) liveEnabled.value = (await response.json()).live_enabled === true
   } catch { liveError.value = 'Local adapter is unavailable. Start demo_server.py to run live.' }
 })
-onUnmounted(() => { alive = false; if (interval) clearInterval(interval) })
+onUnmounted(() => { alive = false; leaveObserver?.disconnect(); if (interval) clearInterval(interval) })
 </script>
 
 <template>
-  <section class="capture-demo" :aria-label="`${slug} demo`">
+  <section ref="root" class="capture-demo" :aria-label="`${slug} demo`">
     <div class="capture-toolbar">
       <span class="badge">{{ viewPending ? 'Pending capture' : manifest?.status ?? (loading ? 'Loading capture' : 'Pending capture') }}</span>
       <span class="capture-time">{{ manifest && !viewPending ? `Captured ${captured}` : 'Waiting for this example’s capture' }}</span>
@@ -183,13 +201,17 @@ onUnmounted(() => { alive = false; if (interval) clearInterval(interval) })
     <template v-else>
       <div class="capture-body" :class="{ 'capture-prompted': asset?.prompt }">
         <div class="capture-media">
-          <label v-if="manifest.assets.length > 1" class="capture-picker">Captured asset
+          <div v-if="promptChoices.length" class="capture-models" role="group" aria-label="Choose a model clip">
+            <button v-for="(item, index) in promptChoices" :key="item.path" type="button" class="brief-button brief-secondary"
+              :aria-pressed="index === selected" @click="choose(index, $event)">{{ item.modelName ?? item.caption }}</button>
+          </div>
+          <label v-else-if="manifest.assets.length > 1" class="capture-picker">Captured asset
             <select v-model="selected" aria-label="Captured asset">
               <option v-for="(item, index) in manifest.assets" :key="item.path" :value="index">{{ item.caption }}</option>
             </select>
           </label>
           <figure v-if="asset">
-            <video v-if="asset.kind === 'video'" :key="asset.path" controls preload="metadata" :src="assetUrl(asset.path)" :aria-label="asset.alt"
+            <video v-if="asset.kind === 'video'" ref="player" :key="asset.path" controls preload="metadata" :src="assetUrl(asset.path)" :aria-label="asset.alt"
                           :poster="asset.poster ? assetUrl(asset.poster) : undefined"
                           @error="mediaError = 'Captured video could not load. Refresh the capture or inspect the demo files.'" />
             <img v-else-if="asset.kind === 'image'" :src="assetUrl(asset.path)" :alt="asset.alt"
@@ -208,7 +230,7 @@ onUnmounted(() => { alive = false; if (interval) clearInterval(interval) })
         </div>
         <aside class="capture-details">
           <template v-if="asset?.prompt">
-            <p v-if="clipLabel" class="capture-clip-label">{{ clipLabel }}</p>
+            <p v-if="asset.label ?? (promptChoices.length ? '' : clipLabel)" class="capture-clip-label">{{ asset.label ?? clipLabel }}</p>
             <h2>Prompt</h2>
             <blockquote class="capture-prompt">{{ asset.prompt }}</blockquote>
           </template>

@@ -396,7 +396,7 @@ class: demo-slide
 
 # Choose the right video model.
 
-<DemoCapture slug="fal-video" asset-match="smoke.mp4" clip-label="MiniMax H3 Max Turbo · Microsoft Foundry · fal · public preview · 5 s · 480P" no-live no-metrics />
+<DemoCapture slug="fal-video" asset-match=".mp4" clip-label="MiniMax H3 Max Turbo · Microsoft Foundry · fal · public preview · 5 s · 480P" no-live no-metrics />
 
 <!--
 Here is a real clip from Microsoft Foundry: MiniMax H3 Max Turbo through fal, five seconds at 480P, with prompt expansion disabled, so the model received exactly the prompt on screen. The request took about 47 seconds end to end. I treat Max Turbo as the fast-draft option: a clip like this answers composition, light, and camera-motion questions before I commit to a quality pass. We deployed all five portfolio models in East US 2, but only Max Turbo has generated a clip, so this is one sample, not a speed, quality, or cost comparison. Check access, region, quota, and per-second pricing first.

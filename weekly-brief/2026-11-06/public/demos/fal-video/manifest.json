@@ -1,0 +1,55 @@
+{
+  "slug": "fal-video",
+  "title": "Fast draft versus final render: fal video in Microsoft Foundry",
+  "status": "unavailable",
+  "captured_at": "2026-11-09T00:40:20-08:00",
+  "environment": {
+    "region": null,
+    "checked_regions": ["eastus", "eastus2"],
+    "models": [
+      {"model": "kling-v3-pro", "deployment": null, "status": "unavailable", "reason": "Fal.EnableDeploy is NotRegistered; no terms acceptance authorized."},
+      {"model": "ltx-2.5-fast", "deployment": null, "status": "unavailable", "reason": "Fal.EnableDeploy is NotRegistered; no terms acceptance authorized."},
+      {"model": "ltx-2.5-pro", "deployment": null, "status": "unavailable", "reason": "Fal.EnableDeploy is NotRegistered; no terms acceptance authorized."},
+      {"model": "minimax-h3-max", "deployment": null, "status": "unavailable", "reason": "Fal.EnableDeploy is NotRegistered; no terms acceptance authorized."},
+      {"model": "minimax-h3-max-turbo", "deployment": null, "status": "unavailable", "reason": "Fal.EnableDeploy is NotRegistered; no terms acceptance authorized."}
+    ],
+    "deployments": [],
+    "tool_versions": {"azure_cli": "2.92.0", "uv": "0.12.0", "ffmpeg": "not on PATH", "ffprobe": "not on PATH"}
+  },
+  "assets": [
+    {
+      "path": "/demos/fal-video/comparison.svg",
+      "kind": "image",
+      "caption": "Source-based options and illustrative cost comparison; not generated video.",
+      "alt": "LTX Fast versus Pro at 720p for six seconds: illustrative costs $0.54 versus $0.72. MiniMax Turbo versus Max at 480P for five seconds: $0.125 versus $0.25. Kling Pro supports native audio. Live generation blocked by unregistered preview feature; pricing units need confirmation.",
+      "model": null,
+      "metrics": {"seconds": null, "width": 1280, "height": 860, "duration_s": null, "est_cost_usd": null, "file_mb": null}
+    },
+    {
+      "path": "/demos/fal-video/evidence.json",
+      "kind": "json",
+      "caption": "Official source links, model settings, illustrative costs, and observed access evidence.",
+      "alt": "Structured source evidence; no generation results.",
+      "model": null,
+      "metrics": {"seconds": null, "width": null, "height": null, "duration_s": null, "est_cost_usd": null, "file_mb": null}
+    }
+  ],
+  "metrics": {"clips_generated": 0, "generation_attempts": 0, "observed_generation_seconds": null, "generation_spend_usd": 0, "created_resources": 0},
+  "live": {
+    "supported": false,
+    "command": "uv run demos/fal-video/run.py --json",
+    "typical_seconds": null,
+    "reason": "Fal.EnableDeploy is NotRegistered. Requires administrator terms review, feature registration, supported deployment, confirmed pricing and ffprobe. Runner has not been tested against a live fal endpoint."
+  },
+  "caveats": [
+    "The Nov 5 launch is on Microsoft Tech Community, not the Foundry devblog. The local devblog clone did not contain this announcement.",
+    "Microsoft Learn's fal services notice says processing is outside Microsoft facilities and the Microsoft customer agreements, DPA, and certifications do not apply.",
+    "The launch says US-hosted; Learn specifies US Data Zone for Kling and Global Standard PayGo for LTX/MiniMax. This does not establish all Azure US regions as deployable.",
+    "No matching fal catalog entries were observed in East US or East US 2 while the feature was unregistered. This is not proof of global unavailability.",
+    "No matching fal quota entries were returned in East US 2. Effective subscription RPM remains unverified; documented tiers are 0, 2, or 40 RPM.",
+    "The launch pricing prose says per minute but its table heading says per video second. All visual cost examples use the table heading, are illustrative, and require confirmation.",
+    "No measured speed, quality, fps, file size, or generated sample exists. Do not present this infographic as a model output or benchmark.",
+    "Runner defaults to an available speed-oriented configured model, not an empirically fastest model. Versioned API routes follow Learn examples but live integration is unverified.",
+    "No Azure resources or deployments were created, and no third-party terms were accepted."
+  ]
+}

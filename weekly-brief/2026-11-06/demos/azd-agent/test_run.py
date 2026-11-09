@@ -16,14 +16,15 @@ CONFIG = {
 
 
 class RunnerTests(unittest.TestCase):
-    def invoke(self, config, events=(), prompt="Hello"):
+    def invoke(self, config, events=(), prompt="Hello", *, deck_config=None, environ=None):
         client = MagicMock()
         client.responses.create.return_value.__enter__.return_value = iter(events)
         project = MagicMock()
         project.get_openai_client.return_value.__enter__.return_value = client
         output = io.StringIO()
         with (
-            patch.object(run, "dotenv_values", return_value=config),
+            patch.object(run, "dotenv_values", side_effect=[config, deck_config or {}]) as dotenv,
+            patch.dict(run.os.environ, environ or {}, clear=True),
             patch.object(run, "AzureCliCredential"),
             patch.object(run, "AIProjectClient") as factory,
             patch("sys.argv", ["run.py", "--json", "--prompt", prompt]),
@@ -31,7 +32,50 @@ class RunnerTests(unittest.TestCase):
         ):
             factory.return_value.__enter__.return_value = project
             code = run.main()
+        self.assertEqual(
+            [call.args[0] for call in dotenv.call_args_list],
+            [
+                run.Path(run.__file__).resolve().parent / ".env",
+                run.Path(run.__file__).resolve().parent.parents[1] / ".env",
+            ],
+        )
         return code, json.loads(output.getvalue()), project
+
+    def test_process_environment_overrides_both_dotenv_files(self):
+        events = [
+            SimpleNamespace(type="response.output_text.delta", delta="Hello"),
+            SimpleNamespace(type="response.completed"),
+        ]
+        code, result, _ = self.invoke(
+            {**CONFIG, "AZD_AGENT_NAME": "demo-agent"},
+            events,
+            deck_config={**CONFIG, "AZD_AGENT_NAME": "deck-agent"},
+            environ={**CONFIG, "AZD_AGENT_NAME": "process-agent"},
+        )
+        self.assertEqual(code, 0)
+        self.assertEqual(result["agent"], "process-agent")
+
+    def test_deck_dotenv_overrides_demo_dotenv(self):
+        events = [
+            SimpleNamespace(type="response.output_text.delta", delta="Hello"),
+            SimpleNamespace(type="response.completed"),
+        ]
+        code, result, _ = self.invoke(
+            {**CONFIG, "AZD_AGENT_NAME": "demo-agent"},
+            events,
+            deck_config={**CONFIG, "AZD_AGENT_NAME": "deck-agent"},
+        )
+        self.assertEqual(code, 0)
+        self.assertEqual(result["agent"], "deck-agent")
+
+    def test_deck_dotenv_works_without_demo_dotenv(self):
+        events = [
+            SimpleNamespace(type="response.output_text.delta", delta="Hello"),
+            SimpleNamespace(type="response.completed"),
+        ]
+        code, result, _ = self.invoke({}, events, deck_config=CONFIG)
+        self.assertEqual(code, 0)
+        self.assertEqual(result["agent"], CONFIG["AZD_AGENT_NAME"])
 
     def test_completed_live_response(self):
         events = [

@@ -36,7 +36,9 @@ Copy-Item demos\azd-agent\.env.example demos\azd-agent\.env
 uv run demos/azd-agent/run.py --json
 ```
 
-Required environment contract (read only from `demos/azd-agent/.env`):
+Required environment contract: inherited process environment takes precedence,
+then the deck's `weekly-brief/2026-11-06/.env`, then `demos/azd-agent/.env`.
+Paths are resolved relative to this script, not the terminal's working directory.
 
 | Variable | Value |
 | --- | --- |

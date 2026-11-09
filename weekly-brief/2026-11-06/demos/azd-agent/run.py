@@ -10,6 +10,7 @@
 
 import argparse
 import json
+import os
 import re
 import sys
 import time
@@ -31,7 +32,7 @@ def redact(text: str) -> str:
 
 
 def main() -> int:
-    """Read demo-local configuration, invoke once, and report elapsed time."""
+    """Resolve deployment configuration, invoke once, and report elapsed time."""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--json", action="store_true", help="Print exactly one JSON object.")
     parser.add_argument("--prompt", default=DEFAULT_PROMPT)
@@ -46,13 +47,19 @@ def main() -> int:
         "endpoint_host": "",
     }
     try:
-        values = dotenv_values(Path(__file__).with_name(".env"))
+        demo_root = Path(__file__).resolve().parent
+        values = {
+            **dotenv_values(demo_root / ".env"),
+            **dotenv_values(demo_root.parents[1] / ".env"),
+            **os.environ,
+        }
         endpoint = values.get("AZD_AGENT_PROJECT_ENDPOINT", "")
         agent = values.get("AZD_AGENT_NAME", "")
         result["agent"] = agent or ""
         if not endpoint or not agent:
             raise ValueError(
-                "Set AZD_AGENT_PROJECT_ENDPOINT and AZD_AGENT_NAME in demos/azd-agent/.env."
+                "Set AZD_AGENT_PROJECT_ENDPOINT and AZD_AGENT_NAME in the process "
+                "environment, deck .env, or demos/azd-agent/.env."
             )
         parsed = urlparse(endpoint)
         if (

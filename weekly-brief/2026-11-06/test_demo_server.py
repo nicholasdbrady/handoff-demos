@@ -161,6 +161,15 @@ class RunnerTests(unittest.TestCase):
             with self.assertRaisesRegex(demo_server.DemoError, "missing model configuration"):
                 demo_server.run_demo("maf-skills")
 
+    def test_exception_name_retains_actionable_runner_diagnostic(self):
+        def process(command, **kwargs):
+            kwargs["stderr"].write(b"Installed 30 packages\nLive run failed (ValueError): Set FOUNDRY_PROJECT_ENDPOINT and FOUNDRY_MODEL.\n")
+            kwargs["stdout"].write(b'{"ok":false,"error":"ValueError"}')
+            return unittest.mock.Mock(returncode=1)
+        with patch.object(demo_server.subprocess, "Popen", side_effect=process):
+            with self.assertRaisesRegex(demo_server.DemoError, "Set FOUNDRY_PROJECT_ENDPOINT and FOUNDRY_MODEL"):
+                demo_server.run_demo("maf-skills")
+
     def test_invalid_json_and_size(self):
         for output in [b"not JSON", b"[]", b"x" * (demo_server.OUTPUT_LIMIT + 1)]:
             def process(command, **kwargs):

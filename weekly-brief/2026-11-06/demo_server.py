@@ -100,6 +100,10 @@ def run_demo(slug: str) -> dict:
                     error_result = None
                 if isinstance(error_result, dict) and isinstance(error_result.get("error"), str):
                     failure = error_result["error"]
+                    prefix = f"Live run failed ({failure}): "
+                    runner_detail = next((line for line in diagnostic.splitlines() if line.startswith(prefix)), "")
+                    if runner_detail:
+                        failure = runner_detail
                 raise DemoError(502, f"Runner exited {process.returncode}. {failure or diagnostic}")
             if len(output) > OUTPUT_LIMIT:
                 raise DemoError(502, "Runner output exceeded the JSON size limit.")

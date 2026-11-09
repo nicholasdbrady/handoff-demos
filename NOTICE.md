@@ -32,8 +32,14 @@ those materials.
   and [packing fixtures](decisions/demos/livestream-updates/public/packing/README.md)
   retain generation provenance. They are teaching illustrations, not real
   customer evidence or evaluation datasets.
-- Harness diagrams were included with the demo source. The README SVG is
+- The slide-3 harness Orbit diagram is original artwork made for this deck by
+  the repository owner. The README SVG is
   original code-native artwork for this repository. Campaign avatar/title art
   and corporate logos were not imported.
 - Dependencies retain their own licenses. Package installation does not grant
   rights to Microsoft brands or imply endorsement.
+- Both decks self-host IBM Plex Sans and IBM Plex Mono through Fontsource
+  packages. These fonts retain their SIL Open Font License 1.1; the license
+  files ship with `@fontsource-variable/ibm-plex-sans` and
+  `@fontsource/ibm-plex-mono`. They are not relicensed under this repository's MIT
+  license.

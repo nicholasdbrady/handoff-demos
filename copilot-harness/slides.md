@@ -11,7 +11,8 @@ aspectRatio: 16/9
 canvasWidth: 1280
 transition: fade
 fonts:
-  sans: Manrope Variable
+  sans: IBM Plex Sans
+  mono: IBM Plex Mono
   provider: none
 drawings:
   enabled: false
@@ -52,15 +53,10 @@ lets the user replace all these internals.
 
 # The harness closes the loop.
 
-<img class="diagram diagram-light" src="/harness-light.png" alt="The harness turns user tasks into model decisions, policy-checked tool calls, workspace updates, and growing trace context, while direct answers exit as checked artifacts." />
-<img class="diagram diagram-dark" src="/harness-dark.png" alt="The harness turns user tasks into model decisions, policy-checked tool calls, workspace updates, and growing trace context, while direct answers exit as checked artifacts." />
+<HarnessOrbit :active="$slidev.nav.currentPage === 3" />
 
 <!--
-The model starts each turn by reading the user task and current context. If it
-needs a tool, the harness checks policy, runs the tool in the workspace, appends
-the result and trace, and returns to the model for another turn. If the model
-answers directly, or policy or a limit stops the run, the harness produces a
-checked artifact. The editable Excalidraw source is included beside the exports.
+This illustrative harness checks configured policy and limits, checkpoints state and assesses progress at each shown turn boundary; progress permits a bounded second turn, but only satisfied completion criteria permit the response. A policy block, no progress or exhausted limits is a stop, not successful completion. This is a designed control sequence, not live telemetry or a claim that every SDK, Copilot or Foundry deployment provides these checks or persistence automatically.
 -->
 
 ---

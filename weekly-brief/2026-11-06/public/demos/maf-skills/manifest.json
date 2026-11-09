@@ -1,0 +1,56 @@
+{
+  "slug": "maf-skills",
+  "title": "Agent Framework builder skills",
+  "status": "ready",
+  "captured_at": "2026-11-09T08:50:14Z",
+  "environment": {
+    "region": "eastus2",
+    "models/deployments": ["gpt-5.4-mini"],
+    "tool versions": {
+      "GitHub CLI": "2.102.1",
+      "GitHub Copilot CLI": "1.0.108-1",
+      "uv": "0.12.0",
+      "Python (generated app)": "3.13.13",
+      "agent-framework-foundry": "1.16.1",
+      "agent-framework-core": "1.25.0",
+      "azure-identity": "1.27.0"
+    }
+  },
+  "assets": [
+    {
+      "path": "/demos/maf-skills/skill-tree.txt",
+      "kind": "text",
+      "caption": "Installed Python builder skill and focused references.",
+      "alt": "Skill tree and brief excerpts describing the plain-agent path."
+    },
+    {
+      "path": "/demos/maf-skills/generated-excerpt.txt",
+      "kind": "text",
+      "caption": "The generated app uses Agent Framework and Azure Identity, not the builder skill at runtime.",
+      "alt": "Python excerpt showing a Foundry-backed agent and an add function."
+    },
+    {
+      "path": "/demos/maf-skills/transcript.json",
+      "kind": "transcript",
+      "caption": "A trimmed real installation, generation, and live-run transcript.",
+      "alt": "Four steps from skill installation through a real answer of 42."
+    }
+  ],
+  "metrics": {
+    "captured_live_latency_ms": 10602,
+    "captured_tool_calls": 1,
+    "skill_source_commit": "924a6e50ec0336f3c965ee8b1151c54085888b6e"
+  },
+  "live": {
+    "supported": true,
+    "command": "uv run demos/maf-skills/run.py --json",
+    "typical_seconds": 11
+  },
+  "caveats": [
+    "The builder skills guide coding agents during development; they are not runtime skills loaded by the shipped app.",
+    "One captured run is an illustration, not a benchmark or a comparison against an unassisted run. Latency varies, especially on the first dependency install.",
+    "Live use requires a configured Foundry project, an eligible deployment, Azure CLI authentication, and inference permissions. Model calls may incur charges.",
+    "The .NET builder skill is described by the guide but was not executed in this Python walkthrough.",
+    "The installed @main ref is mutable; the captured source commit is recorded above."
+  ]
+}

@@ -1,0 +1,21 @@
+Generated app excerpt (generated_app.py):
+
+from agent_framework import Agent
+from agent_framework.foundry import FoundryChatClient
+from azure.identity.aio import AzureCliCredential
+
+def add(a: int, b: int) -> int:
+    """Return the sum of two integers."""
+    return a + b
+
+agent = Agent(
+    client=client,
+    name="AdditionAgent",
+    instructions="Use the add tool for addition. Keep your answer brief.",
+    tools=[add],
+    default_options={"store": False},
+)
+response = await agent.run("Use your tool to add 19 and 23.")
+
+The generated program has no runtime import or dependency on the builder
+skill. run.py adds JSON formatting and records actual local tool calls.

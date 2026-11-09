@@ -1,0 +1,26 @@
+[
+  {
+    "step": "Preview and install",
+    "cmd_or_prompt": "gh skill preview microsoft/agent-framework agent-framework-builder-python@main; gh skill install microsoft/agent-framework agent-framework-builder-python@main --agent github-copilot --scope project",
+    "output": "Installed agent-framework-builder-python under the isolated project's .agents/skills directory from main commit 924a6e50ec0336f3c965ee8b1151c54085888b6e.",
+    "seconds": null
+  },
+  {
+    "step": "Generate",
+    "cmd_or_prompt": "Use the installed agent-framework-builder-python skill to build a small Python Agent Framework app with a Microsoft Foundry model and one function tool. Use uv, token credentials, and a short runnable example.",
+    "output": "Copilot's recorded events show the project skill loaded and references/agent-builder.md read. It generated a plain Agent using FoundryChatClient, AzureCliCredential and an add function. Its final summary said the live run was unverified because Foundry configuration was absent.",
+    "seconds": 393
+  },
+  {
+    "step": "Run the generated app",
+    "cmd_or_prompt": "uv run --no-sync main.py",
+    "output": "42",
+    "seconds": null
+  },
+  {
+    "step": "Run the deck adapter",
+    "cmd_or_prompt": "uv run demos/maf-skills/run.py --json",
+    "output": "{\"ok\":true,\"prompt\":\"Use your tool to add 19 and 23.\",\"output_text\":\"42\",\"tool_calls\":[{\"name\":\"add\",\"arguments\":{\"a\":19,\"b\":23},\"result\":42}],\"latency_ms\":10602,\"model\":\"gpt-5.4-mini\"}",
+    "seconds": 10.602
+  }
+]

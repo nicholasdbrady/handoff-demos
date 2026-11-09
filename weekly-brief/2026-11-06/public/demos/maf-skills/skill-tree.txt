@@ -1,0 +1,27 @@
+Installed with gh skill into the isolated project's .agents/skills directory.
+Source: microsoft/agent-framework@924a6e50ec0336f3c965ee8b1151c54085888b6e
+
+agent-framework-builder-python/
+  SKILL.md
+  references/
+    agent-builder.md
+    declarative.md
+    evaluation.md
+    extensibility.md
+    harness-agent-builder.md
+    hosting-and-deployment.md
+    integrations.md
+    observability.md
+    workflow-builder.md
+
+SKILL.md excerpt: "Choose the smallest framework pattern that preserves the
+required behavior, load only the relevant references, and validate against
+current APIs instead of relying on remembered preview-era syntax."
+
+references/agent-builder.md excerpt: "Foundry project model with
+application-owned instructions and tools | agent-framework-foundry,
+FoundryChatClient"
+
+These are instructions for a coding agent at development time. The generated
+application imports the framework and Azure Identity; it does not read or
+import the skill files at runtime.

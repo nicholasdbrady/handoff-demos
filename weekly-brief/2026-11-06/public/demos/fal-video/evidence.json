@@ -171,7 +171,8 @@
       "request": {
         "duration": 5,
         "resolution": "480P",
-        "prompt_expansion_mode": "disabled"
+        "prompt_expansion_mode": "disabled",
+        "prompt": "A calm developer workspace at dawn, an empty desk with an unbranded laptop showing abstract colored code blocks, a plain notebook and a warm cup of tea. Soft amber light, gentle steam, a slow smooth camera push forward, one continuous shot. A quiet transition from an idea to a working prototype. No people, faces, readable text, logos, or brands."
       },
       "request_id": null,
       "request_id_note": "Not captured; runner did not emit it then.",

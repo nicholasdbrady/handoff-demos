@@ -50,9 +50,9 @@ Live configuration: fill `AZD_AGENT_PROJECT_ENDPOINT` and `AZD_AGENT_NAME` for
 the hosted agent; `FOUNDRY_PROJECT_ENDPOINT` and `FOUNDRY_MODEL` for the Agent
 Framework app; or `KIMI_ENDPOINT`, `KIMI_DEPLOYMENT`, and `KIMI_AUTH=cli` for
 the sculpture. Sign in with `az login` and ensure inference access. Set
-`SLIDEV_ENABLE_LIVE=1` only after configuration. fal also needs explicitly
-approved service access, deployments, and current prices; setting an environment
-flag does not grant access or accept terms.
+`SLIDEV_ENABLE_LIVE=1` only after configuration. fal also needs the
+`Fal.EnableDeploy` registration, accepted fal terms, deployments, and confirmed
+per-second prices; the fal slide shows its captured clip and has no live button.
 
 The adapter loads `.env` on the server and passes those values to its fixed
 runner subprocesses. Shell values take precedence. No keys or tokens enter
@@ -71,8 +71,10 @@ Request flow: slide button → same-origin Vite `/demo-api/` proxy →
 loopback adapter with `X-Demo-Client: slidev` → fixed demo runner →
 JSON live result or explicit error.
 
-Foundry Local has no live demo on this hardware. fal generation is unavailable
-without approved access and terms; the educational portfolio comparison remains.
+Foundry Local has no live demo on this hardware. fal access is enabled and all
+five portfolio models are deployed in East US 2; one 5 s, 480P MiniMax H3 Max
+Turbo clip was generated. The other four models have no output, so the deck
+draws no cross-model speed, quality, or cost conclusion.
 
 ```powershell
 npm run build
@@ -112,7 +114,7 @@ isolated display only; its captured HTML and data remain unchanged.
 | 17 | Exact-cutoff exclusions | Publication boundary |
 | 18–19 | Code to hosted agent conversation | Actual recorded Inspector + hosted run; optional live invocation |
 | 20 | Local coding conversation | Hardware walkthrough; no live run |
-| 21–22 | Video model-choice conversation | Explicit unavailable generation; comparison |
+| 21–22 | Video model-choice conversation | Captured H3 Max Turbo clip with exact prompt; other four models not generated |
 | 23–24 | MAI lifecycle conflict and coverage context | Dated source comparison |
 | 25 | Close | Developer workflow synthesis |
 

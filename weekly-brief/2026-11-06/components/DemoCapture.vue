@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
-type Asset = { path: string; kind: 'video' | 'image' | 'json' | 'text' | 'transcript'; caption: string; alt: string }
+type Asset = { path: string; kind: 'video' | 'image' | 'json' | 'text' | 'transcript'; caption: string; alt: string; poster?: string; prompt?: string }
 type Manifest = {
   slug: string; title: string; status: 'ready' | 'partial' | 'unavailable'; captured_at: string
   environment: Record<string, unknown>; assets: Asset[]; metrics: Record<string, unknown>
   live: { supported: boolean; command?: string; typical_seconds?: number }; caveats: string[]
 }
-const props = defineProps<{ slug: string; assetMatch?: string }>()
+const props = defineProps<{ slug: string; assetMatch?: string; clipLabel?: string; noLive?: boolean; noMetrics?: boolean }>()
 const manifest = ref<Manifest>()
 const selected = ref(0)
 const captureError = ref('')
@@ -72,7 +72,10 @@ function parseManifest(value: unknown): Manifest {
       || typeof item.alt !== 'string' || !['video', 'image', 'json', 'text', 'transcript'].includes(item.kind))
       throw new Error('Capture manifest contains an invalid asset.')
     assetUrl(item.path)
-    assets.push({ path: item.path, kind: item.kind, caption: item.caption, alt: item.alt })
+    if (item.poster !== undefined && typeof item.poster !== 'string') throw new Error('Capture poster must be a path.')
+    if (item.prompt !== undefined && typeof item.prompt !== 'string') throw new Error('Capture prompt must be text.')
+    if (item.poster) assetUrl(item.poster)
+    assets.push({ path: item.path, kind: item.kind, caption: item.caption, alt: item.alt, poster: item.poster, prompt: item.prompt })
   }
   if (!data.caveats.every(item => typeof item === 'string')) throw new Error('Capture caveats must be text.')
   const live = data.live as Record<string, unknown>
@@ -159,11 +162,11 @@ onUnmounted(() => { alive = false; if (interval) clearInterval(interval) })
       <span class="badge">{{ viewPending ? 'Pending capture' : manifest?.status ?? (loading ? 'Loading capture' : 'Pending capture') }}</span>
       <span class="capture-time">{{ manifest && !viewPending ? `Captured ${captured}` : 'Waiting for this example’s capture' }}</span>
       <button class="brief-button brief-secondary" @click="refresh">Refresh capture</button>
-      <button v-if="manifest?.live.supported && !viewPending" class="brief-button" :disabled="running || !liveEnabled" @click="runLive">
+      <button v-if="manifest?.live.supported && !viewPending && !noLive" class="brief-button" :disabled="running || !liveEnabled" @click="runLive">
         {{ running ? 'Running live…' : 'Run live' }}
       </button>
     </div>
-    <div v-if="headlineMetrics.length && !viewPending" class="capture-metrics" aria-label="Captured measurements">
+    <div v-if="headlineMetrics.length && !viewPending && !noMetrics" class="capture-metrics" aria-label="Captured measurements">
       <span v-for="[name, value] in headlineMetrics" :key="name"><strong>{{ value }}</strong> {{ name.replaceAll('_', ' ') }}</span>
     </div>
     <p v-if="captureError" role="alert" class="brief-error">{{ captureError }}</p>
@@ -178,7 +181,7 @@ onUnmounted(() => { alive = false; if (interval) clearInterval(interval) })
       <p>The explanation stays available. This panel will show real evidence when the demo lands.</p>
     </div>
     <template v-else>
-      <div class="capture-body">
+      <div class="capture-body" :class="{ 'capture-prompted': asset?.prompt }">
         <div class="capture-media">
           <label v-if="manifest.assets.length > 1" class="capture-picker">Captured asset
             <select v-model="selected" aria-label="Captured asset">
@@ -187,7 +190,8 @@ onUnmounted(() => { alive = false; if (interval) clearInterval(interval) })
           </label>
           <figure v-if="asset">
             <video v-if="asset.kind === 'video'" :key="asset.path" controls preload="metadata" :src="assetUrl(asset.path)" :aria-label="asset.alt"
-              @error="mediaError = 'Captured video could not load. Refresh the capture or inspect the demo files.'" />
+                          :poster="asset.poster ? assetUrl(asset.poster) : undefined"
+                          @error="mediaError = 'Captured video could not load. Refresh the capture or inspect the demo files.'" />
             <img v-else-if="asset.kind === 'image'" :src="assetUrl(asset.path)" :alt="asset.alt"
               @error="mediaError = 'Captured image could not load. Refresh the capture or inspect the demo files.'" />
             <p v-else-if="textError" role="alert" class="brief-error">{{ textError }}</p>
@@ -203,7 +207,12 @@ onUnmounted(() => { alive = false; if (interval) clearInterval(interval) })
           </div>
         </div>
         <aside class="capture-details">
-          <h2>{{ manifest.title }}</h2>
+          <template v-if="asset?.prompt">
+            <p v-if="clipLabel" class="capture-clip-label">{{ clipLabel }}</p>
+            <h2>Prompt</h2>
+            <blockquote class="capture-prompt">{{ asset.prompt }}</blockquote>
+          </template>
+          <h2 v-else>{{ manifest.title }}</h2>
         </aside>
       </div>
     </template>

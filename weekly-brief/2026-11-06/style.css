@@ -65,6 +65,10 @@
 .capture-empty p { font-size: 23px; }
 .capture-live { position: absolute; bottom: 0; left: 0; width: 100%; max-height: 300px; overflow: auto; background: var(--surface-raised); border: 1px solid var(--rule); padding: 16px; }
 .capture-live .live-signal { font-size: 16px; }
+.capture-body.capture-prompted { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); height: 470px; }
+.capture-prompted .capture-media :is(img, video) { max-height: 340px; }
+.capture-details .capture-clip-label { font: 20px/1.4 var(--font-mono); color: var(--ink-soft); margin-bottom: 18px; }
+.slidev-layout .capture-details .capture-prompt { margin: 8px 0 0; padding: 0 0 0 18px; border-left: 3px solid var(--accent); font-size: 24px; line-height: 1.38; color: var(--ink); background: none; }
 .kimi-comparison { position: relative; }
 .kimi-stage { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr); gap: 28px; }
 .kimi-efforts { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }

@@ -112,7 +112,7 @@ https://devblogs.microsoft.com/foundry/foundry-local-agentic-coding-qwen3-8-27b/
 </table>
 
 <!--
-I am treating model selection as a workflow decision: when do I need a fast draft, and when is another quality pass worth the time and cost? Microsoft announced five fal portfolio models in public preview: Kling v3 Pro, LTX-2.5 Fast and Pro, and MiniMax H3 Max and Max Turbo. The brief's shorthand Turbo name needs the full Max Turbo product name. The initial portfolio is US-hosted; the announcement lists Kling as US Data Zone and LTX and MiniMax as Global Standard. This table is a conceptual comparison, not our measured benchmark. Our subscription lacks approved fal access, so I will not imply that a video was generated.
+I am treating model selection as a workflow decision: when do I need a fast draft, and when is another quality pass worth the time and cost? Microsoft announced five fal portfolio models in public preview: Kling v3 Pro, LTX-2.5 Fast and Pro, and MiniMax H3 Max and Max Turbo. The brief's shorthand Turbo name needs the full Max Turbo product name. The initial portfolio is US-hosted; the announcement lists Kling as US Data Zone and LTX and MiniMax as Global Standard. This table is a conceptual comparison, not our measured benchmark. Later I will show one real H3 Max Turbo clip; the other four models have not generated output, so the table carries the comparison.
 
 Source, 2026-11-05, checked 2026-11-09:
 https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/building-the-next-generation-of-multimodal-ai-experiences-with-fal-in-microsoft-/4570032
@@ -384,7 +384,7 @@ class: chapter
 <div class="brief-window"><strong>Same prompt</strong><span>→</span><strong>Fast draft</strong><span>→</span><strong>Quality pass</strong></div>
 
 <!--
-I will compare the model options through the question of when a fast draft is more useful than a higher-quality render. A draft can answer composition and direction questions before we pay for a final pass. That is a workflow hypothesis, not a measured ranking from this show. The fal models are in public preview, with model-specific availability and pricing. Our subscription does not have the required fal deployment access, and enabling it requires terms acceptance; no registration or provisioning has occurred. I will use the portfolio comparison to choose a starting model and explain which prompt, timing, quality, and cost evidence a real comparison needs.
+I will compare the model options through the question of when a fast draft is more useful than a higher-quality render. A draft can answer composition and direction questions before we pay for a final pass. That is a workflow hypothesis, not a measured ranking from this show. The fal models are in public preview, with model-specific availability and pricing. We enabled fal access and deployed all five models in East US 2; so far one clip exists, from MiniMax H3 Max Turbo. I will show that clip and its exact prompt, then explain which prompt, timing, quality, and cost evidence a real cross-model comparison needs.
 
 Source, 2026-11-05, checked 2026-11-09:
 https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/building-the-next-generation-of-multimodal-ai-experiences-with-fal-in-microsoft-/4570032
@@ -396,12 +396,12 @@ class: demo-slide
 
 # Choose the right video model.
 
-<DemoCapture slug="fal-video" />
+<DemoCapture slug="fal-video" asset-match="smoke.mp4" clip-label="MiniMax H3 Max Turbo · Microsoft Foundry · fal · public preview · 5 s · 480P" no-live no-metrics />
 
 <!--
-I will compare the portfolio through a practical sequence: choose a prompt, use a fast draft to test composition, and decide whether a quality-oriented pass is worth the added time and cost. LTX-2.5 has Fast and Pro options; MiniMax H3 has Max Turbo and Max; Kling v3 Pro adds another family to compare on the same task. Our subscription lacks approved fal deployment access, so this panel uses the source-based comparison rather than a generated video. For developers, access, region, quota, terms, and model-specific pricing are prerequisites. The model names suggest workflow options, but only task-specific results establish which one is best.
+Here is a real clip from Microsoft Foundry: MiniMax H3 Max Turbo through fal, five seconds at 480P, with prompt expansion disabled, so the model received exactly the prompt on screen. The request took about 47 seconds end to end. I treat Max Turbo as the fast-draft option: a clip like this answers composition, light, and camera-motion questions before I commit to a quality pass. We deployed all five portfolio models in East US 2, but only Max Turbo has generated a clip, so this is one sample, not a speed, quality, or cost comparison. Check access, region, quota, and per-second pricing first.
 
-Source, 2026-11-05; environment status reported 2026-11-09:
+Source, 2026-11-05; clip captured 2026-11-09T15:04:17-08:00 (46.8 s, 5.184 s output, est. $0.13):
 https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/building-the-next-generation-of-multimodal-ai-experiences-with-fal-in-microsoft-/4570032
 -->
 

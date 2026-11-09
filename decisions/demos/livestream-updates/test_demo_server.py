@@ -3,6 +3,7 @@
 import base64
 import json
 import os
+import re
 import runpy
 import tempfile
 import time
@@ -187,65 +188,103 @@ class DemoServerTests(unittest.TestCase):
         self.assertIn("fixture is missing", result.json()["detail"])
 
     def test_systemone_contract_and_both_auth_paths_without_network(self) -> None:
-        payload = {"model": "microsoft-decision-1", "answers": {
-            "team": {"type": "choice", "choice": "billing"},
-        }}
+        payload = {"model": "microsoft-decision-1", "answers": {"team": {"type": "choice", "choice": "billing"}}}
+        class FakeAPIError(Exception): pass
+        class FakeConnectionError(Exception): pass
+        class FakeTimeoutError(Exception): pass
         for auth in ("key", "entra"):
             with self.subTest(auth=auth):
-                requests = []
-
-                def respond(request: httpx.Request) -> httpx.Response:
-                    requests.append(request)
-                    return httpx.Response(200, json=payload)
-
+                sdk = MagicMock()
+                sdk.RetryPolicy.side_effect = lambda **kwargs: SimpleNamespace(**kwargs)
+                sdk.TypeSafeAPIError = FakeAPIError
+                sdk.TypeSafeAPIConnectionError = FakeConnectionError
+                sdk.TypeSafeAPITimeoutError = FakeTimeoutError
+                client = sdk.TypeSafeClient.return_value.__enter__.return_value
+                client.system_one.return_value.model_dump.return_value = payload
                 credential = Mock()
-                credential.get_token.return_value = AccessToken("synthetic-token", int(time.time()) + 3600)
-                with httpx.Client(transport=httpx.MockTransport(respond)) as http, \
-                        patch.multiple(server, LIVE_ENABLED=True, SYSTEMONE_ENDPOINT="https://example.invalid",
-                                       SYSTEMONE_DEPLOYMENT="my-decision", SYSTEMONE_API_KEY="test-key" if auth == "key" else ""), \
-                        patch.object(server.httpx, "post", side_effect=http.post), \
-                        patch("azure.identity.DefaultAzureCredential", return_value=credential) as identity, \
-                        patch.object(server.threading, "Thread"), patch.object(server, "_SYSTEMONE_TOKEN", []):
+                credential.__enter__ = Mock(return_value=credential)
+                credential.__exit__ = Mock(return_value=False)
+                credential.get_token.return_value.token = "synthetic-token"
+                with patch.dict("sys.modules", {"typesafe_sdk": sdk}), \
+                        patch.multiple(server, LIVE_ENABLED=True, SYSTEMONE_ENDPOINT="https://example.invalid/providers/microsoft",
+                                       SYSTEMONE_DEPLOYMENT="Decision-1", SYSTEMONE_API_KEY="test-key" if auth == "key" else ""), \
+                        patch("azure.identity.DefaultAzureCredential", return_value=credential) as identity:
                     result = self.client.post("/demo-api/microsoft-decision", json={"mode": "live", "text": "Please refund."})
                 self.assertEqual(result.status_code, 200)
                 self.assertEqual(result.json()["raw"], payload)
-                request = requests[0]
-                self.assertEqual(request.url.path, "/providers/microsoft/v1/systemone")
-                body = json.loads(request.content)
-                self.assertEqual(body["model"], "my-decision")
-                self.assertEqual(body["state"], "Please refund.")
-                self.assertNotIn("input", body)
-                self.assertIsInstance(body["questions"], dict)
-                self.assertEqual(body["questions"]["refund_requested"]["type"], "noul")
-                self.assertEqual(body["questions"]["severity"]["criteria"], ["Cosmetic", "Minor", "Major", "Critical"])
+                options = sdk.TypeSafeClient.call_args.kwargs
+                self.assertEqual(options["base_url"], "https://example.invalid/providers/microsoft")
+                self.assertEqual(options["api_key"], "test-key" if auth == "key" else "synthetic-token")
+                self.assertEqual(options["model"], "Decision-1")
+                self.assertFalse(options["compression"])
+                self.assertEqual(options["retry"].max_retries, 0)
+                self.assertEqual(options["timeout"], 60)
+                call = client.system_one.call_args.kwargs
+                self.assertEqual(call["state"], "Please refund.")
+                self.assertEqual(call["questions"]["refund_requested"]["type"], "noul")
+                self.assertEqual(call["questions"]["severity"]["criteria"], ["Cosmetic", "Minor", "Major", "Critical"])
+                self.assertEqual(call["timeout"], 60)
                 if auth == "key":
-                    self.assertEqual(request.headers["api-key"], "test-key")
-                    self.assertNotIn("authorization", request.headers)
                     identity.assert_not_called()
                 else:
-                    self.assertEqual(request.headers["authorization"], "Bearer synthetic-token")
-                    self.assertNotIn("api-key", request.headers)
-                    credential.get_token.assert_called_once_with("https://cognitiveservices.azure.com/.default")
+                    credential.get_token.assert_called_once_with(server.SYSTEMONE_TOKEN_SCOPE)
+
+    def test_systemone_provider_endpoint_and_scope_override(self) -> None:
+        class FakeAPIError(Exception): pass
+        class FakeConnectionError(Exception): pass
+        class FakeTimeoutError(Exception): pass
+        for endpoint in ("https://example.invalid", "https://example.invalid/",
+                         "https://example.invalid/providers/microsoft", "https://example.invalid/providers/microsoft/"):
+            with self.subTest(endpoint=endpoint):
+                sdk = MagicMock()
+                sdk.RetryPolicy.side_effect = lambda **kwargs: SimpleNamespace(**kwargs)
+                sdk.TypeSafeAPIError = FakeAPIError
+                sdk.TypeSafeAPIConnectionError = FakeConnectionError
+                sdk.TypeSafeAPITimeoutError = FakeTimeoutError
+                sdk.TypeSafeClient.return_value.__enter__.return_value.system_one.return_value.model_dump.return_value = {"answers": {}}
+                credential = Mock()
+                credential.__enter__ = Mock(return_value=credential)
+                credential.__exit__ = Mock(return_value=False)
+                credential.get_token.return_value.token = "synthetic-token"
+                with patch.dict("sys.modules", {"typesafe_sdk": sdk}), \
+                        patch.multiple(server, LIVE_ENABLED=True, SYSTEMONE_ENDPOINT=endpoint,
+                                       SYSTEMONE_DEPLOYMENT="Decision-1", SYSTEMONE_API_KEY="",
+                                       SYSTEMONE_TOKEN_SCOPE="https://ai.azure.com/.default"), \
+                        patch("azure.identity.DefaultAzureCredential", return_value=credential):
+                    result = self.client.post("/demo-api/microsoft-decision", json={"mode": "live", "text": "refund"})
+                self.assertEqual(result.status_code, 200)
+                self.assertEqual(sdk.TypeSafeClient.call_args.kwargs["base_url"], "https://example.invalid/providers/microsoft")
+                credential.get_token.assert_called_once_with("https://ai.azure.com/.default")
 
     def test_systemone_bad_config_and_upstream_failures_do_not_fall_back(self) -> None:
-        with patch.object(server, "LIVE_ENABLED", True), patch.object(server.httpx, "post") as send:
+        class FakeAPIError(Exception):
+            def __init__(self, status): self.status = status
+        class FakeConnectionError(Exception): pass
+        class FakeTimeoutError(Exception): pass
+        sdk = MagicMock()
+        sdk.RetryPolicy.side_effect = lambda **kwargs: SimpleNamespace(**kwargs)
+        sdk.TypeSafeAPIError = FakeAPIError
+        sdk.TypeSafeAPIConnectionError = FakeConnectionError
+        sdk.TypeSafeAPITimeoutError = FakeTimeoutError
+        with patch.dict("sys.modules", {"typesafe_sdk": sdk}), patch.object(server, "LIVE_ENABLED", True):
             for endpoint, deployment in (
                 ("", ""), ("https://example.invalid", ""), ("https://example.invalid/api/projects/p", "d"),
-                ("http://example.invalid", "d"), ("https://user:password@example.invalid", "d"),
+                ("http://example.invalid", "d"), ("******example.invalid", "d"),
                 ("https://example.invalid?key=x", "d"),
+                ("https://example.invalid/providers/microsoft/v1", "d"),
+                ("https://example.invalid/providers/microsoft?key=x", "d"),
+                ("https://example.invalid/providers/microsoft#fragment", "d"),
             ):
                 with patch.multiple(server, SYSTEMONE_ENDPOINT=endpoint, SYSTEMONE_DEPLOYMENT=deployment):
                     result = self.client.post("/demo-api/microsoft-decision", json={"mode": "live", "text": "x"})
                     self.assertEqual(result.status_code, 409)
-            send.assert_not_called()
-        for status, body in ((403, {"private": "do not reveal"}), (200, {"answers": []}), (200, None)):
-            response = httpx.Response(status, json=body, request=httpx.Request("POST", "https://example.invalid"))
-            with patch.multiple(server, LIVE_ENABLED=True, SYSTEMONE_ENDPOINT="https://example.invalid",
-                                SYSTEMONE_DEPLOYMENT="d", SYSTEMONE_API_KEY="test-only"), \
-                    patch.object(server.httpx, "post", return_value=response):
+            sdk.TypeSafeClient.assert_not_called()
+            sdk.TypeSafeClient.return_value.__enter__.return_value.system_one.side_effect = FakeAPIError(403)
+            with patch.multiple(server, SYSTEMONE_ENDPOINT="https://example.invalid", SYSTEMONE_DEPLOYMENT="Decision-1",
+                                SYSTEMONE_API_KEY="test-only"):
                 result = self.client.post("/demo-api/microsoft-decision", json={"mode": "live", "text": "refund"})
             self.assertEqual(result.status_code, 502)
-            self.assertNotIn("do not reveal", result.text)
+            self.assertIn("HTTP 403", result.json()["detail"])
             self.assertNotIn("raw", result.json())
 
     def test_systemone_code_is_complete_and_matches_the_native_builder(self) -> None:
@@ -435,6 +474,15 @@ class DemoServerTests(unittest.TestCase):
         with patch.object(server.decisions, "ENDPOINT", ""), self.assertRaises(HTTPException) as missing:
             server.shared_live_client()
         self.assertEqual(missing.exception.status_code, 409)
+
+    def test_project_and_resource_token_audiences(self) -> None:
+        for endpoint, scope in (
+            ("https://example.services.ai.azure.com/api/projects/demo", "https://ai.azure.com/.default"),
+            ("https://example.services.ai.azure.com", "https://ai.azure.com/.default"),
+            ("https://example.openai.azure.com", "https://cognitiveservices.azure.com/.default"),
+        ):
+            with patch.object(server.decisions, "ENDPOINT", endpoint):
+                self.assertEqual(server.decisions.token_scope(), scope)
 
     def test_fresh_token_renews_off_the_request_path(self) -> None:
         now = 1_000_000.0
@@ -728,6 +776,44 @@ class DemoServerTests(unittest.TestCase):
             response = self.client.post("/demo-api/run", json={"mode": "live", "code": "print(1)"})
         self.assertEqual(response.status_code, 409)
         run.assert_not_called()
+
+    def test_slide_image_example_sends_bundled_pixels_and_three_question_types(self) -> None:
+        slides = (server.HERE / "slides.md").read_text(encoding="utf-8")
+        stages = re.findall(r"```python \{monaco-run\}[^\n]*\n(.*?)\n```", slides, re.S)
+        self.assertEqual(len(stages), 3)
+        code = stages[2]
+        sdk = Mock()
+        sdk.decisions.create.return_value.answers = []
+        real_path = Path
+        with patch("pathlib.Path", side_effect=lambda path: real_path(server.HERE / path)):
+            exec(compile(code, "<image-slide>", "exec"), {"client": sdk, "DEPLOYMENT": "test-deployment"})
+        request = sdk.decisions.create.call_args.kwargs
+        self.assertEqual(request["model"], "test-deployment")
+        self.assertEqual([q["type"] for q in request["questions"]], ["predicate", "choice", "score"])
+        part = request["input"][0]["content"][0]
+        self.assertEqual(part["type"], "input_image")
+        self.assertTrue(part["image_url"].startswith("data:image/png;base64,"))
+        self.assertEqual(base64.b64decode(part["image_url"].split(",", 1)[1]),
+                         (server.HERE / "public" / "packing" / "sunshine.png").read_bytes())
+        result = self.run_code(code)
+        self.assertEqual(result["mode"], "rehearsal")
+        self.assertEqual(result["exit_code"], 0, result["stderr"])
+        for name in ("rain_protection", "footwear", "visibility"):
+            self.assertIn(f'"name": "{name}"', result["stdout"])
+
+    def test_missing_code_image_is_actionable_and_releases_run_lock(self) -> None:
+        with patch.object(server, "CODE_RUN_ENABLED", True), patch.object(server.Path, "is_file", return_value=False):
+            response = self.client.post("/demo-api/run", json={"code": "print(1)"})
+        self.assertEqual(response.status_code, 409)
+        self.assertIn("Restore public/packing/sunshine.png", response.json()["detail"])
+        self.assertFalse(server.RUN_LOCK.locked())
+
+    def test_isolated_review_port_keeps_the_origin_guard(self) -> None:
+        with patch.object(server, "UI_PORT", 3330):
+            for origin in ("http://127.0.0.1:3330", "http://localhost:3330"):
+                self.assertEqual(self.client.get("/demo-api/status", headers={"Origin": origin}).status_code, 200)
+            for origin in ("http://127.0.0.1:3030", "https://example.invalid", "http://192.0.2.1:3330"):
+                self.assertEqual(self.client.get("/demo-api/status", headers={"Origin": origin}).status_code, 403)
 
     def test_run_errors_show_slide_lines_not_runner_internals(self) -> None:
         result = self.run_code("x = 1\nraise ValueError('boom')\n")

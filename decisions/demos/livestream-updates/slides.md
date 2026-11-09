@@ -11,7 +11,8 @@ aspectRatio: 16/9
 canvasWidth: 1280
 transition: fade
 fonts:
-  sans: Manrope Variable
+  sans: IBM Plex Sans
+  mono: IBM Plex Mono
   provider: none
 drawings:
   enabled: false
@@ -68,43 +69,95 @@ Source: https://learn.microsoft.com/azure/foundry/agents/concepts/user-delegatio
 -->
 
 ---
-class: demo-slide
----
 
-# System 1 and System 2 on the same ticket.
+# A focused judgment. A typed answer.
 
-<SystemCompare />
+<p class="lede">A decision model evaluates evidence against questions you define.</p>
+
+<div class="flow">
+<div class="flow-node"><strong>Evidence</strong><small>A ticket, document, or image.</small></div>
+<div class="arrow" aria-hidden="true"></div>
+<div class="flow-node"><strong>Bounded questions</strong><small>Is it true? Which option? How much?</small></div>
+<div class="arrow" aria-hidden="true"></div>
+<div class="flow-node"><strong>Typed answers</strong><small>Values and probabilities your code can use.</small></div>
+</div>
+
+<p class="combine">The model judges. Your application chooses the action.</p>
 
 <!--
-~3 minutes. Both lanes call the same gpt-6-luna deployment with the same three
-questions as the first code slide. Run from the main slide window.
-Left: one Decisions request. Typed answers, distributions, zero output tokens.
-Right: the Responses API with reasoning effort high and a reasoning summary.
-It thinks first, then writes an answer and reasons in text.
-Select Run both. Watch the two clocks, then compare output shape and tokens.
-Try Mixed signals: System 2 explains the trade-off; System 1 gives numbers
-to branch on.
-Each clock shows one live run from this machine. Time varies with network,
-load, and input. Do not present it as a benchmark or a universal speedup.
-Measured 26 October on Mixed signals: Decisions 0.6-4.4 s (median 1.4 s,
-23 calls) with 0 output tokens; Responses 2.3-3.9 s with 70-171 reasoning
-tokens. The token gap is consistent. The time gap is not: System 1 can finish
-second. If it does, say so, then lead with output shape and tokens.
-The thinking box is a model-written summary, not the full chain of thought.
-Summaries are best effort. If the box says no summary, point to the
-reasoning-token count instead.
-Cost under each clock: an estimate per 1K runs from this run's tokens at the
-Azure list price for gpt-6-luna, Global Standard. Measured 26 October on
-Mixed signals: about $0.05 for System 1 and $0.11-0.12 for System 2; System 2
-moves with reasoning tokens. Decisions has no separate
-published price, so say "estimate at token rates". Hover for one run.
-Code tab: the exact Python call each lane sends for this ticket. Change the
-preset to show the request change. No Azure call.
-JSON tab: after Run both, the raw response bodies. Point to typed answers and
-usage on the left; output items and reasoning tokens on the right.
-Framing credit: TypeSafe and Kahneman, as on the previous slide.
+Concept first: define the answer space before making the request. The input
+modalities depend on the API; not every decision-model route accepts images.
+TypeSafe, a third-party provider, calls this System One: focused judgments
+instead of generated replies. Its name credits Daniel Kahneman's Thinking,
+Fast and Slow. That is a conceptual framing, not an Azure product name or
+a latency guarantee. Probabilities reflect model judgments, not authority.
+The next slide separates the two documented Foundry routes.
 Source: https://learn.microsoft.com/azure/foundry/openai/how-to/decisions
-Source: https://learn.microsoft.com/azure/foundry/openai/how-to/reasoning
+Source: https://learn.microsoft.com/azure/foundry/foundry-models/how-to/use-foundry-models-microsoft-decision
+Framing: https://docs.typesafe.ai/concepts/system-one
+-->
+
+---
+class: coverage-slide api-contract-slide
+---
+
+# Two decision-model routes in Foundry.
+
+<table class="api-contracts model-comparison" aria-label="Foundry decision models, API contracts, and SDK support">
+<tbody>
+<tr><th scope="row">Model</th><td><strong>gpt-6-luna</strong></td><td><strong>Microsoft-Decision-1</strong></td></tr>
+<tr><th scope="row">API / route</th><td>Azure OpenAI Decisions<br><code>/openai/v1/decisions</code></td><td>Microsoft provider<br><code>/providers/microsoft/v1/systemone</code></td></tr>
+<tr><th scope="row">Input</th><td>Text, images, or both</td><td>Text or JSON state</td></tr>
+<tr><th scope="row">Output</th><td>Predicate, choice, score</td><td>Noul, choice, score</td></tr>
+<tr><th scope="row">Languages / SDK</th><td>OpenAI Python ≥3.26.0<br>OpenAI JavaScript ≥7.30.0 · REST</td><td>TypeSafe Python SDK<br>TypeSafe TypeScript SDK · REST<small>Wire-compatible with the TypeSafe SDKs.</small></td></tr>
+</tbody>
+</table>
+
+<p class="caption">Foundry catalog: Convai Innovations' <a href="https://ai.azure.com/catalog/models/convaiinnovations--laya-typed-decisions">Laya family</a><br><a href="https://ai.azure.com/catalog/models/convaiinnovations--laya">Laya (English)</a> · <a href="https://ai.azure.com/catalog/models/convaiinnovations--laya-multilingual">Laya Multilingual</a> · <a href="https://ai.azure.com/catalog/models/convaiinnovations--laya-typed-decisions">Laya Typed Decisions</a></p>
+
+<!--
+Sources checked 4 November 2026. Foundry has two decision-model API routes
+in this comparison, with different request contracts.
+Azure OpenAI Decisions takes text, images, or both and returns predicate,
+choice, and score answers. gpt-6-luna is its only supported model.
+The regional rollout excludes East US 2. Use OpenAI Python >=3.26.0,
+JavaScript >=7.30.0, or REST.
+Microsoft-Decision-1 takes text or JSON state and returns noul, choice, and
+score answers. It supports GlobalStandard and DataZoneStandard in selected
+regions. Use cases include gates, routing, prioritization, grading, and
+model/tool/agent selection.
+Microsoft-Decision-1 is wire-compatible with the TypeSafe Python and
+TypeScript SDKs. Live tests on 2026-10-29 used typesafe-sdk 0.7.5 and
+@typesafe-ai/sdk 0.7.0 with Entra authentication and compression disabled.
+Both SDKs called our Azure deployment directly at
+<resource>/providers/microsoft/v1/systemone, rather than TypeSafe's service.
+Both parsed model microsoft-decision-1 and
+answers.refund_requested = {type: noul, noul: 0.9992},
+with usage of 35 input tokens and 1 output token.
+Set base_url / baseURL to the resource root plus /providers/microsoft;
+the SDK appends /v1/systemone. Use the deployment name as model / defaultModel
+and pass the Entra token through api_key / apiKey, sent as a bearer token.
+Disable compression. Live verification on 2026-11-04 with typesafe-sdk 0.7.5
+and @typesafe-ai/sdk 0.7.0 covers text and JSON state with noul, choice, score,
+and all three together, each repeated three times per SDK; serialized requests,
+parsed answers, and numeric token usage match the Azure REST contract and
+same-call raw responses. Evidence: Taskbean key typesafe-azure-sdk-smoke-20261029.
+The OpenAI Decisions and Microsoft provider routes use different request
+contracts, so changing the base URL alone does not convert one to the other.
+Convai Innovations provides the Apache 2.0 Laya family listed in the Foundry
+catalog: Laya for English/general use, Laya Multilingual, and Laya Typed
+Decisions. The Typed Decisions card links all three checkpoints and describes
+agent-trace observability, customer service, invoice processing, and security
+incident workflows. Its quickstart loads the model in Python with laya;
+laya[serve] provides an optional HTTP server. The catalog family complements
+the two managed API routes compared above.
+Source: https://learn.microsoft.com/azure/foundry/openai/how-to/decisions
+Source: https://learn.microsoft.com/azure/foundry/foundry-models/how-to/use-foundry-models-microsoft-decision
+Source: https://ai.azure.com/catalog/models/convaiinnovations--laya
+Source: https://ai.azure.com/catalog/models/convaiinnovations--laya-multilingual
+Source: https://ai.azure.com/catalog/models/convaiinnovations--laya-typed-decisions
+Source: https://docs.typesafe.ai/sdk/python/api/clients/sync
+Source: https://docs.typesafe.ai/sdk/python
 -->
 
 ---
@@ -152,8 +205,44 @@ Framing: https://docs.typesafe.ai/concepts/system-one
 -->
 
 ---
+class: coverage-slide
+---
+
+# Match the answer shape to the question.
+
+<table aria-label="Decision answer shapes and example uses">
+<thead><tr><th>Shape</th><th>Returns</th><th>Example use</th></tr></thead>
+<tbody>
+<tr><td><strong>Noul / predicate</strong></td><td>Yes/no probability, 0 to 1</td><td>Does this ticket ask for a refund?</td></tr>
+<tr><td><strong>Choice</strong></td><td>One option + probabilities</td><td>Route to billing or technical support.</td></tr>
+<tr><td><strong>Score</strong></td><td>A value on ordered levels</td><td>Prioritize an incident by severity.</td></tr>
+<tr><td><strong>Box</strong><br><span class="caption">TypeSafe Jev, not on Foundry yet</span></td><td>Fractional image edges</td><td>Locate visible damage in a photo.</td></tr>
+</tbody>
+</table>
+
+<p class="caption">Noul and predicate share the yes/no probability shape; their API contracts differ.</p>
+
+<!--
+Noul is the binary type in Microsoft-Decision-1 and TypeSafe. Predicate is the
+Azure OpenAI Decisions name. Both return a probability from zero to one, not
+a thresholded permission to act. Their surrounding request/response fields differ.
+Choice uses a fixed answer set. Decisions also reports confidence separately
+from each option's probability.
+Score uses ordered levels: the Decisions result is the probability-weighted
+average of zero-based level indexes, so fractional values are expected.
+Box is documented by third-party TypeSafe for Jev. It returns top, bottom,
+left, and right edges as fractions from zero to one. It is not a supported
+type in either documented Foundry route above. The next slide uses images
+with predicate, choice, and score on gpt-6-luna; it does not request a box.
+Any Decisions answer can be a refusal; check type before reading its value.
+Source: https://learn.microsoft.com/azure/foundry/openai/how-to/decisions
+Source: https://learn.microsoft.com/azure/foundry/foundry-models/how-to/use-foundry-models-microsoft-decision
+Source: https://docs.typesafe.ai/concepts/system-one
+-->
+
+---
 class: demo-slide code-slide
-clicks: 1
+clicks: 2
 ---
 
 # One call. Three answer shapes.
@@ -163,7 +252,8 @@ clicks: 1
 <div class="demo code-stage-switch" @click.stop @keydown.stop>
 <div class="view-switch" role="group" aria-label="Code walkthrough">
 <button :aria-pressed="$clicks === 0" @click="$clicksContext.current = 0">One predicate</button>
-<button :aria-pressed="$clicks > 0" @click="$clicksContext.current = 1">Three answer shapes</button>
+<button :aria-pressed="$clicks === 1" @click="$clicksContext.current = 1">Three answer shapes</button>
+<button :aria-pressed="$clicks === 2" @click="$clicksContext.current = 2">Image input</button>
 </div>
 </div>
 
@@ -187,7 +277,7 @@ print("input tokens:", decision.usage.input_tokens)
 ```
 
 </div>
-<div v-else>
+<div v-else-if="$clicks === 1">
 
 ```python {monaco-run} {autorun:false, ata:false, height:'508px'}
 teams = ["billing", "technical", "security", "other"]
@@ -213,10 +303,42 @@ for answer in decision.answers:
 ```
 
 </div>
+<div v-else>
+
+```python {monaco-run} {autorun:false, ata:false, height:'508px'}
+import base64
+from pathlib import Path
+
+image = Path("public/packing/sunshine.png")
+image_url = "data:image/png;base64," + base64.b64encode(
+    image.read_bytes()
+).decode("ascii")
+
+decision = client.decisions.create(
+    model=DEPLOYMENT,
+    input=[{"role": "user", "content": [
+        {"type": "input_image", "image_url": image_url},
+    ]}],
+    questions=[
+        {"type": "predicate", "name": "rain_protection",
+         "instructions": "Is an umbrella or hooded raincoat visible?"},
+        {"type": "choice", "name": "footwear",
+         "instructions": "Which footwear is visible?",
+         "choices": [{"value": v} for v in ["open", "closed", "unclear"]]},
+        {"type": "score", "name": "visibility",
+         "instructions": "How clearly can the suitcase contents be inspected?",
+         "levels": [{"label": v} for v in ["obscured", "partial", "clear"]]},
+    ],
+)
+for answer in decision.answers:
+    print(answer.model_dump_json(indent=2))
+```
+
+</div>
 
 <!--
 Start with One predicate. The local runner supplies client and DEPLOYMENT.
-Run, then select Three answer shapes. Both examples are editable and runnable.
+Run, then select Three answer shapes. Select Image input for a third editable example.
 Only Run calls Azure; switching examples does not.
 Point to predicate probability, choice and its allowed values, and zero-based score levels.
 Five levels give a 0-to-4 scale; a fractional weighted score is expected.
@@ -224,7 +346,56 @@ Named questions share input but do not see each other's answers.
 Use the typed answer object, handle refusal, and do not parse generated prose.
 The runner owns authentication; no secret is in the slide.
 Presenter-view editors are separate copies; run from the main slide window.
+The image stage reuses the synthetic Sunshine suitcase fixture. The local
+runner copies that bundled PNG into its temporary public/packing directory.
+The request sends pixels as a base64 data URL, not a filename. It asks for
+predicate, choice, and score; no box type is sent.
+This example has offline syntax/transport coverage, not a paid image smoke
+test. Do not claim live image accuracy or measured performance.
+PNG, JPG, WebP, and GIF are documented; up to 128 images and 32 MB per request.
+Input can instead use a public HTTPS image URL. Up to 400 questions can share
+one request. These are limits, not a recommendation to fill the slide.
 Source: https://learn.microsoft.com/azure/foundry/openai/how-to/decisions
+-->
+
+---
+class: demo-slide
+---
+
+# System 1 and System 2 on the same ticket.
+
+<SystemCompare />
+
+<!--
+~3 minutes. Both lanes call the same gpt-6-luna deployment with the same three
+questions as the first code slide. Run from the main slide window.
+Left: one Decisions request. Typed answers, distributions, zero output tokens.
+Right: the Responses API with reasoning effort high and a reasoning summary.
+It thinks first, then writes an answer and reasons in text.
+Select Run both. Watch the two clocks, then compare output shape and tokens.
+Try Mixed signals: System 2 explains the trade-off; System 1 gives numbers
+to branch on.
+Each clock shows one live run from this machine. Time varies with network,
+load, and input. Do not present it as a benchmark or a universal speedup.
+Measured 26 October on Mixed signals: Decisions 0.6-4.4 s (median 1.4 s,
+23 calls) with 0 output tokens; Responses 2.3-3.9 s with 70-171 reasoning
+tokens. The token gap is consistent. The time gap is not: System 1 can finish
+second. If it does, say so, then lead with output shape and tokens.
+The thinking box is a model-written summary, not the full chain of thought.
+Summaries are best effort. If the box says no summary, point to the
+reasoning-token count instead.
+Cost under each clock: an estimate per 1K runs from this run's tokens at the
+Azure list price for gpt-6-luna, Global Standard. Measured 26 October on
+Mixed signals: about $0.05 for System 1 and $0.11-0.12 for System 2; System 2
+moves with reasoning tokens. Decisions has no separate
+published price, so say "estimate at token rates". Hover for one run.
+Code tab: the exact Python call each lane sends for this ticket. Change the
+preset to show the request change. No Azure call.
+JSON tab: after Run both, the raw response bodies. Point to typed answers and
+usage on the left; output items and reasoning tokens on the right.
+Framing credit: TypeSafe and Kahneman; see the decision-model concept on slide 3.
+Source: https://learn.microsoft.com/azure/foundry/openai/how-to/decisions
+Source: https://learn.microsoft.com/azure/foundry/openai/how-to/reasoning
 -->
 
 ---
@@ -269,7 +440,7 @@ for answer in decision.answers:
         )
 ```
 
-<p class="caption" style="margin-top: 24px">Tune thresholds on labeled examples and the cost of each error. Probability and choice/score confidence are different signals, not accuracy guarantees.</p>
+<p class="caption mt-3">Tune thresholds on labeled examples and the cost of each error. Probability and choice/score confidence are different signals, not accuracy guarantees.</p>
 </div>
 </div>
 
@@ -471,7 +642,7 @@ Source: https://learn.microsoft.com/azure/foundry/foundry-models/how-to/use-foun
 <div class="flow-node"><strong>Service authorization</strong><small>Enforce who can access data.<br>Never trust a model score as permission.</small></div>
 </div>
 
-<p class="lede" style="margin-top: 40px">The next boundary is identity:<br>whose permissions does the agent's tool use?</p>
+<p class="lede mt-5">The next boundary is identity:<br>whose permissions does the agent's tool use?</p>
 
 <!--
 Close Decisions before moving to Agent OBO. These are separate capabilities.
@@ -504,7 +675,7 @@ The next demo uses a read-only profile lookup.
 <div class="boundary"><strong>Caller</strong><span class="arrow"></span><strong>Agent endpoint</strong><span>Who can invoke it, with which audience?</span></div>
 <div class="boundary"><strong>Agent</strong><span class="arrow"></span><strong>Downstream tool</strong><span>Which identity reaches the data?</span></div>
 
-<p class="lede" style="margin-top: 38px">Permissions do not carry across these boundaries.</p>
+<p class="lede mt-5">Permissions do not carry across these boundaries.</p>
 
 <!--
 ~2 minutes. Having an Azure role that lets you create an agent does not imply
@@ -524,7 +695,7 @@ Source: https://learn.microsoft.com/azure/foundry/agents/concepts/identity-acces
 | `AgentOnBehalfOfUser` | Always the agent identity, on behalf of the user | Blueprint audience required |
 | `OAuth2` | Separate per-connection user sign-in | Client must handle the sign-in flow |
 
-<p class="caption" style="margin-top: 32px">Agent-identity OBO is in preview. Tool and channel support differ.<br>Conditional Access and the downstream service's authorization policy still apply.</p>
+<p class="caption mt-4">Agent-identity OBO is in preview. Tool and channel support differ.<br>Conditional Access and the downstream service's authorization policy still apply.</p>
 
 <!--
 ~2 minutes. Avoid saying UserEntraToken always means Foundry is the actor.
@@ -553,7 +724,7 @@ Source: https://learn.microsoft.com/azure/foundry/agents/concepts/user-delegatio
 }
 ```
 
-<p class="caption" style="margin-top: 20px">Explicit, fully qualified scopes.<br>One downstream resource per connection.</p>
+<p class="caption mt-3">Explicit, fully qualified scopes.<br>One downstream resource per connection.</p>
 </div>
 <div>
 <h2>Caller to agent</h2>
@@ -566,7 +737,7 @@ Caller token scope:
   api://<blueprint-id>/access_agent
 ```
 
-<p class="caption" style="margin-top: 20px">Authorize the client app and retain every endpoint scheme you still need when patching the array.</p>
+<p class="caption mt-3">Authorize the client app and retain every endpoint scheme you still need when patching the array.</p>
 </div>
 </div>
 
@@ -637,7 +808,7 @@ Flow: Vue controls -> local Python adapter -> existing OBO client.
 | Consent is incomplete | The client pauses, then resumes correctly |
 | Wrong audience or missing scope | A real failure, with no privileged fallback |
 
-<p class="caption" style="margin-top: 28px">Same agent, separate authenticated user contexts. Review actual tool results and failures.<br>A model saying “I can't access it” does not prove enforcement.</p>
+<p class="caption mt-4">Same agent, separate authenticated user contexts. Review actual tool results and failures.<br>A model saying “I can't access it” does not prove enforcement.</p>
 
 <!--
 ~1 minute. A profile lookup demonstrates user context, not full isolation.
@@ -735,7 +906,7 @@ Source: https://learn.microsoft.com/azure/foundry/openai/how-to/decisions
 </div>
 </div>
 
-<p class="caption" style="margin-top: 34px">Responses remains the path for generated text, custom JSON output, and tool calls.</p>
+<p class="caption mt-4">Responses remains the path for generated text, custom JSON output, and tool calls.</p>
 
 <!--
 ~1 minute. The System 1 and System 2 clocks are single live runs, not a

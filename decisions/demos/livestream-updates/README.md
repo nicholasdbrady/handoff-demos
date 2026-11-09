@@ -1,8 +1,8 @@
 # Foundry developer livestream, in Slidev
 
-A 25-slide, 16:9 presentation (22 core + 3 appendix) for the Azure OpenAI Decisions API, the Microsoft
+A 28-slide, 16:9 presentation (25 core + 3 appendix) for the Azure OpenAI Decisions API, the Microsoft
 System One API, and agent on-behalf-of-user (OBO) tool connections in Foundry
-Agent Service. Seven demo panels and a two-stage code walkthrough run **inside the slides** against live services,
+Agent Service. Seven demo panels and a three-stage code walkthrough run **inside the slides** against live services,
 through a loopback-only Python adapter. Each slide has speaker notes; source
 links are in the notes as `Source:` lines. Allow about 40 minutes.
 
@@ -43,13 +43,25 @@ On start, the adapter signs in once in the background. It then renews the
 Microsoft Entra token in the background before it expires, so no measured call
 includes sign-in time. API-key mode does not start an Entra sign-in.
 
+For [instant models](https://learn.microsoft.com/azure/foundry/concepts/instant-models),
+set `AZURE_OPENAI_ENDPOINT` to the existing Foundry inference resource root
+(`https://<resource>.services.ai.azure.com`), without `/openai/v1`.
+The clients append that path once and use the
+`https://ai.azure.com/.default` Entra audience. Set `DECISIONS_DEPLOYMENT` and
+`SYSTEM2_DEPLOYMENT` to the supported model name, such as `gpt-6-luna`; these
+legacy setting names do not require creating a deployment for instant access.
+OpenAI and Cognitive Services hostnames retain the Cognitive Services audience.
+The documented project route supports Responses; use the resource inference
+route for this deck's shared Decisions and Responses client.
+The independent `SYSTEMONE_*` settings do not inherit this token scope.
+
 ## Before the stream
 
 1. Fill `.env`, set `SLIDEV_ENABLE_LIVE=1` and `SLIDEV_ENABLE_CODE_RUN=1`, and
    start both servers.
-2. Open slides 3, 5, 6, 8, 9, 11, 12, and 19. Missing configuration appears beside the
+2. Open slides 7, 8, 9, 11, 12, 14, 15, and 22. Missing configuration appears beside the
    examples; configured panels do not show a connection badge.
-3. Run the core demo panels once to confirm deployment and tenant access. Slide 9's
+3. Run the core demo panels once to confirm deployment and tenant access. Slide 12's
    extraction checks are local; only **Route note with Luna** sends a model request.
 4. Provision the OBO agent and tool connection. Test sign-in and consent with
    a test account before you share your screen.
@@ -68,39 +80,49 @@ backend is unavailable.
 | --- | --- | --- |
 | 1 | Decide on evidence. Act with the user. | |
 | 2 | What's new | |
-| 3 | System 1 and System 2 on the same ticket. | `SystemCompare.vue` |
-| 4 | What a decision model is—and is not. | |
-| 5 | One call. Three answer shapes. | Two editable Monaco stages |
-| 6 | Turn answers into a route. | `DecisionDemo.vue` |
-| 7 | The uncertain path is part of the design. | |
-| 8 | Inspect the suitcase. Then change the trip. | `ImageDecisionDemo.vue` |
-| 9 | From a packing slip to a receiving exception. | `RetailReceivingDemo.vue`; synthetic extraction, optional live semantic call |
-| 10 | Pick the API, not just the model name. | |
-| 11 | Microsoft-Decision-1: the native request. | `MicrosoftDecisionDemo.vue` |
-| 12 | Same product—or a costly mistake? | `ProviderCompare.vue` |
-| 13 | A judgment is not permission. | |
-| 14 | Now the agent needs the user's data. | |
-| 15 | Three boundaries. Three separate decisions. | |
-| 16 | Which identity is the OBO actor? | |
-| 17 | Configure both sides of the boundary. | |
-| 18 | Consent is a resumable step, not a dead end. | |
-| 19 | Call the agent as the user. | `OboDemo.vue` |
-| 20 | The proof is an access test, not a profile. | |
-| 21 | A model judges. Your code decides. The service authorizes. | |
-| 22 | Keep the code. Keep the sources. | |
-| 23 | Appendix: One input. Many independent questions. | |
-| 24 | Appendix: Measure your workload, not the headline. | |
-| 25 | Appendix: One category. Different model surfaces. | |
+| 3 | A focused judgment. A typed answer. | |
+| 4 | Two decision-model routes in Foundry. | |
+| 5 | What a decision model is—and is not. | |
+| 6 | Match the answer shape to the question. | |
+| 7 | One call. Three answer shapes. | Three editable Monaco stages, including image input |
+| 8 | System 1 and System 2 on the same ticket. | `SystemCompare.vue` |
+| 9 | Turn answers into a route. | `DecisionDemo.vue` |
+| 10 | The uncertain path is part of the design. | |
+| 11 | Inspect the suitcase. Then change the trip. | `ImageDecisionDemo.vue` |
+| 12 | From a packing slip to a receiving exception. | `RetailReceivingDemo.vue`; synthetic extraction, optional live semantic call |
+| 13 | Pick the API, not just the model name. | |
+| 14 | Microsoft-Decision-1: the native request. | `MicrosoftDecisionDemo.vue` |
+| 15 | Same product—or a costly mistake? | `ProviderCompare.vue` |
+| 16 | A judgment is not permission. | |
+| 17 | Now the agent needs the user's data. | |
+| 18 | Three boundaries. Three separate decisions. | |
+| 19 | Which identity is the OBO actor? | |
+| 20 | Configure both sides of the boundary. | |
+| 21 | Consent is a resumable step, not a dead end. | |
+| 22 | Call the agent as the user. | `OboDemo.vue` |
+| 23 | The proof is an access test, not a profile. | |
+| 24 | A model judges. Your code decides. The service authorizes. | |
+| 25 | Keep the code. Keep the sources. | |
+| 26 | Appendix: One input. Many independent questions. | |
+| 27 | Appendix: Measure your workload, not the headline. | |
+| 28 | Appendix: One category. Different model surfaces. | |
 
-### Slides 3–4: decision models, System 1 and System 2
+### Slides 3–8: decision models, System 1 and System 2
 
-Slide 3 demonstrates the contrast; slide 4 explains what a decision model is
-and is not. The System 1 and System 2
+Slide 3 introduces the concept, slide 4 separates the two Foundry routes,
+slide 5 sets boundaries, and slide 6 defines the answer shapes. Box is labeled
+**TypeSafe Jev, not on Foundry yet**; it is not a supported Foundry question type.
+Slide 7 shows text and image code; slide 8 demonstrates the contrast.
+Slide 4 lists the documented OpenAI Python/JavaScript SDK minimums for Luna,
+and REST with curl/Python HTTP examples for Microsoft-Decision-1 (no model
+language SDK listed in Learn). Its secondary Laya link is wider ecosystem,
+not a documented managed Foundry offering.
+The System 1 and System 2
 framing comes from Daniel Kahneman and TypeSafe's
 [System One concept page](https://docs.typesafe.ai/concepts/system-one). The
 deck credits it in the notes; these are not Azure product names.
 
-Slide 3 sends the same ticket to two lanes in parallel with **Run both**:
+Slide 8 sends the same ticket to two lanes in parallel with **Run both**:
 
 - **System 1 (left):** one Decisions API request with three questions
   (`wants_refund`, `team`, `severity`). It shows distributions, the score, and
@@ -133,16 +155,23 @@ The **Result / Code / JSON** switch in the toolbar changes both lanes:
   update it.
 - **JSON** shows the response body each lane received, as the SDK parsed it.
 
-### Runnable code on slide 5
+### Runnable code on slide 7
 
 The code editors run Python on your machine. Select **Run** to send the editor
 text to the loopback adapter. The adapter starts a new isolated Python process
 (`code_runner.py`) for each run. That process gets two names: `client` and
 `DEPLOYMENT`.
 
-**One predicate / Three answer shapes** switches the same slide between two
-editable examples. Switching never makes a model call. The second stage is
-also accessible with the slide's next-click navigation.
+**One predicate / Three answer shapes / Image input** switches the same slide
+between three editable examples. Switching never makes a model call. The stages
+are also accessible with the slide's next-click navigation.
+
+The image stage reads the bundled synthetic `public/packing/sunshine.png`,
+encodes its bytes as a base64 data URL, and passes an `input_image` to
+`client.decisions.create`. It asks predicate, choice, and score questions,
+not box. The adapter copies this one fixture into each temporary run directory.
+The example has offline run and request-shape coverage; live image behavior
+remains unverified until a paid smoke test is approved.
 
 - Code runs are off by default. Set `SLIDEV_ENABLE_CODE_RUN=1` in `.env` and
   restart `demo_server.py`. Only the local deck origin can call the endpoint.
@@ -231,7 +260,7 @@ The earlier generated mug fixtures remain unused; they are not sent by these pan
 Image-only input contains an `input_image` part; the question instructions
 define what to inspect: rain protection, footwear, and evidence quality.
 Use the left/right carousel arrows to switch among the three suitcase scenarios.
-On slide 8, select a question beneath the image and edit its instructions before
+On slide 11, select a question beneath the image and edit its instructions before
 Inspect. These edits change that question in the actual request and Python view;
 question names, types, and answer choices stay fixed. Select **Add a trip brief**
 to keep the selected image, restore the original inspection questions, and edit the trip brief.
@@ -313,7 +342,7 @@ Leave `AZURE_OPENAI_API_KEY` empty to use Microsoft Entra authentication.
 
 ### Choose model authentication
 
-These settings cover Decisions, both lanes on slide 3, the triage panel, and
+These settings cover Decisions, both lanes on slide 8, the triage panel, and
 the Monaco Run buttons. Set `AZURE_OPENAI_ENDPOINT` to your Azure resource
 root, such as `https://your-resource.openai.azure.com`, without `/openai/v1/`.
 The code appends that path. Set `DECISIONS_DEPLOYMENT` to your Decisions-enabled
@@ -334,7 +363,7 @@ after changing credentials, endpoints, or model settings.
 The client follows Microsoft's
 [Azure OpenAI authentication examples](https://learn.microsoft.com/azure/developer/ai/how-to/switching-endpoints#authentication).
 
-Optional: set `SYSTEM2_DEPLOYMENT` for slide 3's reasoning model. Its fallback
+Optional: set `SYSTEM2_DEPLOYMENT` for slide 8's reasoning model. Its fallback
 is `RESPONSES_DEPLOYMENT`, then `DECISIONS_DEPLOYMENT`. Both lanes use the same
 endpoint and credential. The slide code receives the configured `client` and
 `DEPLOYMENT`; viewers do not paste credentials into the editor.
@@ -353,16 +382,18 @@ SYSTEMONE_ENDPOINT=https://your-resource.services.ai.azure.com
 SYSTEMONE_DEPLOYMENT=your-decision-1-deployment-name
 ```
 
-Use the resource root, not a project URL or a full API path. If
+Use the resource root or the root plus `/providers/microsoft`, not a project
+URL or the full `/v1/systemone` path. The adapter appends the provider path once. If
 `SYSTEMONE_ENDPOINT` is empty, the adapter reuses `AZURE_OPENAI_ENDPOINT`;
 this works only when that resource hosts the deployment.
 If `SYSTEMONE_API_KEY` is absent, the adapter reuses `AZURE_OPENAI_API_KEY`.
 Set a separate resource key explicitly when needed. Set `SYSTEMONE_API_KEY=`
 explicitly to select Entra even if OpenAI uses a key. The Entra scope is
-`https://cognitiveservices.azure.com/.default`; the identity needs inference
+`https://ai.azure.com/.default` by default; set `SYSTEMONE_TOKEN_SCOPE` only
+when your service requires a different audience. The identity needs inference
 access on the selected resource. Failed key calls do not retry with Entra.
 
-Restart the adapter, then open slide 11. Its generated standalone Python
+Restart the adapter, then open slide 14. Its generated standalone Python
 example uses the three `SYSTEMONE_*` settings explicitly: set the endpoint
 even when the local adapter could reuse the OpenAI setting. Keys and tokens
 stay on the Python side. Configuration readiness is not proof of deployment
@@ -411,7 +442,7 @@ the second account during the next sign-in flow when testing user isolation.
 | --- | --- |
 | Entra sign-in fails | Leave the model key empty; sign in to the resource's tenant and check the selected `DefaultAzureCredential` source. |
 | Model API returns 401 or 403 | Check the key and whether key auth is enabled, or check the Entra identity's inference role. Model credentials do not grant OBO access. |
-| Model API returns 404 | Use the resource root and your deployment name; check that the resource supports the Decisions API. |
+| Model API returns 404 | Check the endpoint and model/deployment name; do not include `/openai/v1` in the configured endpoint because the client appends it. |
 | Slides load but Run cannot reach the server | Start `demo_server.py` on port 8765 and use the local deck on port 3030, not the static export. |
 
 Both authentication paths are covered by offline tests with synthetic
@@ -473,6 +504,7 @@ rewriting can turn the proxy's approved Azure feed URL into a nonexistent path.
 ```powershell
 Set-Location demos\livestream-updates
 npm run typecheck
+node --test test_demo_api.cjs
 npm run build
 uv run --no-project --index-url https://packagefeedproxy.microsoft.io/pypi/simple `
   --with-requirements requirements-dev.txt python -m unittest test_demo_server test_retail_receiving test_catalog_matching -v
@@ -486,23 +518,33 @@ The browser test uses headless Edge at 1920x1080 and 1280x720. It stubs
 readiness and rewrites each request to the adapter's test client, so it makes
 no Azure calls. Before stubbing readiness, it checks that the actual adapter
 allows local code runs; restart the adapter after changing that setting.
-It checks layout and toolbar collisions on all 25 slides, the
+It checks layout and toolbar collisions on all 28 slides, the
 System 1 and System 2 lanes (including one lane failing alone, the Code and
-JSON views, the cost labels, and the reasoning-summary layout), both code
+JSON views, the cost labels, and the reasoning-summary layout), all three code
 editor stages, the triage threshold, native Microsoft SDK listings and JSON,
 all three suitcase fixtures, editable briefs and plot twists, retail evidence gates,
 independent provider lanes and native contracts, the OBO consent and reveal flow, the
 not-connected state of every panel, API failure handling, and presenter notes.
 
 Add `--live-decisions` to make **billable Azure OpenAI calls** with synthetic
-text: one **Run both** on slide 3, two triage runs on slide 6, and one run of
-each code editor. It never invokes OBO or approves consent.
+text: one **Run both** on slide 8, two triage runs on slide 9, and one run of
+each text code editor on slide 7. It never invokes the image code stage, OBO,
+or approves consent.
 Add `--live-packing` to make five **billable Azure Decisions calls** with the
 bundled synthetic suitcase photos: image-only, sunshine/beach, sunshine/rain,
 rain/rain, and obscured/rain. It checks the observed beach/rain fit contrast
 and requires obscured evidence to route to review. It does not assert
 universal image accuracy or force a Ready result.
 Use `--capture-dir <folder>` to keep screenshots and response data.
+
+For an isolated test server, set `SLIDEV_PORT=3330` on the adapter and run
+`python -m uvicorn demo_server:app --host 127.0.0.1 --port 8766`.
+In a second terminal set `DEMO_API_PORT=8766` and run
+`.\node_modules\.bin\slidev.cmd slides.md --port 3330 --bind 127.0.0.1`.
+Keep `SLIDEV_ENABLE_CODE_RUN=1` and `SLIDEV_ENABLE_LIVE=0` on the adapter.
+Pass `--url http://127.0.0.1:3330` to `test_browser.py`.
+These process-scoped port settings leave the default 3030/8765 presentation
+unchanged and keep the adapter's allowed origins loopback-only.
 
 Unit tests cover typed Decisions output, both System lanes, live opt-in,
 cross-site rejection, per-browser continuation, consent retries, reset,

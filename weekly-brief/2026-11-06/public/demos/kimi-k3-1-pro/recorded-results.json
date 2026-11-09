@@ -1,0 +1,368 @@
+{
+  "captured_at": "2026-11-09T09:00:40.715333+00:00",
+  "scenes": [
+    {
+      "ok": true,
+      "mode": "scene",
+      "question": "Build a complete, beautiful three.js kinetic sculpture for a developer livestream.\nReturn ONLY a complete HTML document, no Markdown fences and no explanation.\nUse THREE from the provided classic script ./vendor/three.min.js (three.js 0.160.1).\nNo other imports, dependencies, network calls, external assets, logos, people, or eval.\n\nThe artwork: a small luminous cobalt core with three orbiting, tilted metallic rings,\nwarm copper accents, and hundreds of tiny particles that travel in coherent orbital\npaths. It should feel like a physical museum sculpture, not a random particle cloud.\nCreate depth through geometry, perspective, materials, and lighting. Use a dark navy\nbackground. Fill the available 16:9 viewport with a legible, balanced composition.\nAvoid huge white lighting hotspots. Use simple procedural geometry and bounded GPU work.\n\nInclude working native Pause/Resume and Reset view buttons, a speed range slider,\nmouse or pointer drag to orbit the view, responsive resize, and a clear title.\nRespect prefers-reduced-motion by starting paused. Show an explicit readable error\nif WebGL is unavailable. Keep all text at least 16px, with strong contrast and visible\nkeyboard focus. Use requestAnimationFrame, cap pixel ratio at 2, and no shadows or\npostprocessing. Make it run offline when served alongside the provided three.js file.\nDon't assume OrbitControls or any add-ons are available. Include all implementation\ninside this single document. Aim for a polished scene, not a technical wireframe.\nKeep the implementation concise: at most 250 lines and 18,000 characters of HTML.\n",
+      "answer": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n  <meta charset=\"UTF-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n  <title>Cobalt Orbital \u2014 Kinetic Sculpture</title>\n  <style>\n    * { box-sizing: border-box; }\n    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }\n    body {\n      background: #070d1d;\n      color: #eaf2ff;\n      font-family: system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif;\n    }\n    button, input { font: inherit; }\n    button:focus-visible, input:focus-visible {\n      outline: 3px solid #8ed0ff;\n      outline-offset: 4px;\n    }\n    canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }\n    canvas.dragging { cursor: grabbing; }\n    .title {\n      position: fixed;\n      z-index: 2;\n      top: 22px;\n      left: 26px;\n      pointer-events: none;\n      text-shadow: 0 2px 14px #070d1d;\n    }\n    h1 { margin: 0; font-size: 22px; font-weight: 650; letter-spacing: .18em; text-transform: uppercase; }\n    .subtitle { margin-top: 7px; color: #adc1df; font-size: 14px; letter-spacing: .08em; line-height: 1.5; }\n    .controls {\n      position: fixed;\n      z-index: 2;\n      bottom: 22px;\n      left: 50%;\n      transform: translateX(-50%);\n      display: flex;\n      align-items: center;\n      justify-content: center;\n      gap: 12px;\n      width: max-content;\n      max-width: calc(100% - 24px);\n      padding: 12px;\n      border: 1px solid #3b5277;\n      border-radius: 14px;\n      background: rgba(10, 19, 38, .94);\n      box-shadow: 0 10px 35px #0006;\n    }\n    button {\n      min-height: 44px;\n      padding: 8px 15px;\n      border: 1px solid #56709a;\n      border-radius: 8px;\n      background: #17253e;\n      color: #eaf2ff;\n      cursor: pointer;\n    }\n    button:hover { background: #223654; }\n    .speed { display: flex; align-items: center; gap: 9px; padding: 0 3px; }\n    .speed label { font-size: 14px; color: #cbd9ee; }\n    input[type=range] { width: 130px; min-height: 44px; accent-color: #78b9ff; cursor: pointer; }\n    output { min-width: 42px; font-size: 14px; font-variant-numeric: tabular-nums; color: #cbd9ee; }\n    .hint {\n      position: fixed;\n      z-index: 2;\n      right: 22px;\n      bottom: 24px;\n      color: #97afd0;\n      font-size: 14px;\n      pointer-events: none;\n    }\n    #error {\n      display: none;\n      position: fixed;\n      z-index: 5;\n      inset: 0;\n      place-items: center;\n      padding: 30px;\n      background: #070d1d;\n      text-align: center;\n      font-size: 18px;\n      line-height: 1.6;\n    }\n    @media (max-width: 760px) {\n      .title { top: 16px; left: 16px; }\n      h1 { font-size: 18px; }\n      .subtitle, .hint { display: none; }\n      .controls { bottom: 12px; gap: 8px; padding: 8px; }\n      button { padding: 8px 10px; }\n      input[type=range] { width: 90px; }\n      .speed label { display: none; }\n    }\n  </style>\n</head>\n<body>\n  <header class=\"title\">\n    <h1>Cobalt Orbital</h1>\n    <div class=\"subtitle\">Kinetic study \u00b7 copper, cobalt &amp; light</div>\n  </header>\n  <div class=\"controls\" role=\"group\" aria-label=\"Sculpture controls\">\n    <button id=\"toggle\" type=\"button\">Pause</button>\n    <button id=\"reset\" type=\"button\">Reset view</button>\n    <div class=\"speed\">\n      <label for=\"speed\">Speed</label>\n      <input id=\"speed\" type=\"range\" min=\"0.15\" max=\"2\" step=\"0.05\" value=\"1\" aria-label=\"Animation speed\">\n      <output id=\"speedValue\" for=\"speed\">1.00\u00d7</output>\n    </div>\n  </div>\n  <div class=\"hint\">Drag to orbit \u00b7 Scroll to zoom</div>\n  <div id=\"error\" role=\"alert\"></div>\n\n  <script src=\"./vendor/three.min.js\"></script>\n  <script>\n  (() => {\n    'use strict';\n    const error = document.getElementById('error');\n    if (!window.THREE) {\n      error.style.display = 'grid';\n      error.textContent = 'The 3D engine could not load. Please serve this page alongside vendor/three.min.js.';\n      return;\n    }\n    let renderer;\n    try {\n      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });\n    } catch (e) {\n      error.style.display = 'grid';\n      error.textContent = 'WebGL is unavailable in this browser. Please enable hardware acceleration or use a WebGL-capable browser.';\n      return;\n    }\n    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));\n    renderer.setSize(innerWidth, innerHeight);\n    renderer.setClearColor(0x070d1d);\n    renderer.outputColorSpace = THREE.SRGBColorSpace;\n    renderer.toneMapping = THREE.ACESFilmicToneMapping;\n    renderer.toneMappingExposure = .9;\n    renderer.domElement.setAttribute('aria-label', 'Interactive luminous cobalt kinetic sculpture. Drag to orbit the view.');\n    document.body.prepend(renderer.domElement);\n\n    const scene = new THREE.Scene();\n    const camera = new THREE.PerspectiveCamera(43, innerWidth / innerHeight, .1, 100);\n    const home = { theta: .55, phi: 1.18, radius: 12.8 };\n    let theta = home.theta, phi = home.phi, radius = home.radius;\n    let paused = matchMedia('(prefers-reduced-motion: reduce)').matches;\n    let speed = 1, time = 0, last = performance.now();\n\n    scene.add(new THREE.HemisphereLight(0x89a8df, 0x170e12, 1.5));\n    const key = new THREE.DirectionalLight(0xffd1a0, 3.1);\n    key.position.set(5, 7, 6);\n    scene.add(key);\n    const fill = new THREE.DirectionalLight(0x618dff, 2.2);\n    fill.position.set(-6, -1, 3);\n    scene.add(fill);\n    const rim = new THREE.PointLight(0xff884d, 35, 18, 2);\n    rim.position.set(-3, 2, -4);\n    scene.add(rim);\n    const coreLight = new THREE.PointLight(0x165dff, 22, 9, 2);\n    scene.add(coreLight);\n\n    const sculpture = new THREE.Group();\n    sculpture.position.y = -.15;\n    scene.add(sculpture);\n\n    // Layered sphere glow: no postprocessing or bloom passes.\n    function glowMaterial(color, opacity) {\n      return new THREE.ShaderMaterial({\n        transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,\n        uniforms: { tint: { value: new THREE.Color(color) }, alpha: { value: opacity } },\n        vertexShader: 'varying vec3 vN; varying vec3 vV; void main(){ vec4 p=modelViewMatrix*vec4(position,1.); vN=normalize(normalMatrix*normal); vV=normalize(-p.xyz); gl_Position=projectionMatrix*p; }',\n        fragmentShader: 'uniform vec3 tint; uniform float alpha; varying vec3 vN; varying vec3 vV; void main(){ float a=pow(1.-abs(dot(vN,vV)),2.2); gl_FragColor=vec4(tint,a*alpha); }'\n      });\n    }\n    const core = new THREE.Mesh(\n      new THREE.IcosahedronGeometry(.47, 4),\n      new THREE.MeshStandardMaterial({ color: 0x073bba, emissive: 0x074bff, emissiveIntensity: 1.65, metalness: .35, roughness: .2 })\n    );\n    sculpture.add(core);\n    const glow1 = new THREE.Mesh(new THREE.SphereGeometry(.72, 24, 16), glowMaterial(0x126cff, .62));\n    const glow2 = new THREE.Mesh(new THREE.SphereGeometry(1.02, 24, 16), glowMaterial(0x064ddd, .22));\n    sculpture.add(glow1, glow2);\n\n    // A museum plinth and fine concentric inlay ground the floating mechanism.\n    const plinth = new THREE.Mesh(\n      new THREE.CylinderGeometry(2.55, 2.8, .24, 96),\n      new THREE.MeshStandardMaterial({ color: 0x111a2a, metalness: .72, roughness: .38 })\n    );\n    plinth.position.y = -3.1;\n    scene.add(plinth);\n    const inlay = new THREE.Mesh(\n      new THREE.TorusGeometry(2.25, .018, 6, 128),\n      new THREE.MeshBasicMaterial({ color: 0xa46037 })\n    );\n    inlay.rotation.x = Math.PI / 2;\n    inlay.position.y = -2.969;\n    scene.add(inlay);\n\n    const steel = new THREE.MeshStandardMaterial({ color: 0x66788d, metalness: .96, roughness: .24 });\n    const copper = new THREE.MeshStandardMaterial({ color: 0xc37543, metalness: .9, roughness: .25 });\n    const ringData = [\n      { radius: 2.0, tube: .072, tilt: new THREE.Euler(.82, .2, .12), rate: .22 },\n      { radius: 2.65, tube: .085, tilt: new THREE.Euler(-.55, .65, 1.05), rate: -.15 },\n      { radius: 3.32, tube: .067, tilt: new THREE.Euler(.4, -.3, -.72), rate: .11 }\n    ];\n    const rings = [];\n    const dummy = new THREE.Object3D();\n    const particlesPerRing = 150;\n    const particleCount = particlesPerRing * ringData.length;\n    const particleGeo = new THREE.SphereGeometry(.025, 6, 4);\n    const particleMat = new THREE.MeshBasicMaterial({ color: 0xa9ceff });\n    const particles = new THREE.InstancedMesh(particleGeo, particleMat, particleCount);\n    particles.instanceMatrix.setUsage(THREE.DynamicDrawUsage);\n    const copperParticles = new THREE.InstancedMesh(particleGeo, new THREE.MeshBasicMaterial({ color: 0xffa467 }), 90);\n    copperParticles.instanceMatrix.setUsage(THREE.DynamicDrawUsage);\n    scene.add(particles, copperParticles);\n    const paths = [];\n\n    ringData.forEach((d, i) => {\n      const group = new THREE.Group();\n      group.rotation.copy(d.tilt);\n      sculpture.add(group);\n      const mesh = new THREE.Mesh(new THREE.TorusGeometry(d.radius, d.tube, 12, 160), i === 1 ? copper : steel);\n      group.add(mesh);\n      // Copper collars are real geometry attached to each orbital ring.\n      for (let j = 0; j < 6; j++) {\n        const a = j * Math.PI / 3;\n        const collar = new THREE.Mesh(new THREE.CylinderGeometry(d.tube * 1.65, d.tube * 1.65, .22, 10), copper);\n        collar.position.set(Math.cos(a) * d.radius, Math.sin(a) * d.radius, 0);\n        collar.rotation.z = a;\n        group.add(collar);\n      }\n      const normal = new THREE.Vector3(0, 0, 1).applyEuler(d.tilt).normalize();\n      const u = new THREE.Vector3(1, 0, 0).applyEuler(d.tilt);\n      const v = new THREE.Vector3(0, 1, 0).applyEuler(d.tilt);\n      paths.push({ u, v, normal, radius: d.radius + .15, rate: d.rate, group });\n      rings.push({ mesh, group, base: d.tilt.clone(), rate: d.rate });\n    });\n\n    const anchors = Array.from({ length: particleCount }, (_, i) => ({\n      a: i % particlesPerRing / particlesPerRing * Math.PI * 2 + Math.sin(i * 12.73) * .18,\n      lane: Math.sin(i * 4.17) * .085,\n      scale: .65 + (Math.sin(i * 8.9) * .5 + .5) * 1.3\n    }));\n    const copperAnchors = Array.from({ length: 90 }, (_, i) => ({\n      a: i / 90 * Math.PI * 2,\n      lane: Math.sin(i * 7.31) * .13,\n      scale: .7 + (Math.sin(i * 5.7) * .5 + .5)\n    }));\n    const p = new THREE.Vector3();\n\n    function placeInstances(mesh, list, ringIndex, offset, t) {\n      const path = paths[ringIndex];\n      list.forEach((d, i) => {\n        const a = d.a + t * (.34 + ringIndex * .07) + offset;\n        const r = path.radius + d.lane;\n        p.copy(path.u).multiplyScalar(Math.cos(a) * r);\n        p.addScaledVector(path.v, Math.sin(a) * r);\n        p.addScaledVector(path.normal, Math.sin(a * 3 + ringIndex) * .055);\n        p.y -= .15;\n        dummy.position.copy(p);\n        dummy.scale.setScalar(d.scale);\n        dummy.updateMatrix();\n        mesh.setMatrixAt(i, dummy.matrix);\n      });\n      mesh.instanceMatrix.needsUpdate = true;\n    }\n\n    function updateCamera() {\n      camera.position.set(\n        radius * Math.sin(phi) * Math.sin(theta),\n        radius * Math.cos(phi),\n        radius * Math.sin(phi) * Math.cos(theta)\n      );\n      camera.lookAt(0, -.35, 0);\n    }\n    updateCamera();\n\n    const toggle = document.getElementById('toggle');\n    const slider = document.getElementById('speed');\n    const output = document.getElementById('speedValue');\n    function syncPause() { toggle.textContent = paused ? 'Resume' : 'Pause'; }\n    syncPause();\n    toggle.addEventListener('click', () => { paused = !paused; syncPause(); });\n    slider.addEventListener('input', () => {\n      speed = Number(slider.value);\n      output.value = speed.toFixed(2) + '\u00d7';\n    });\n    document.getElementById('reset').addEventListener('click', () => {\n      theta = home.theta; phi = home.phi; radius = home.radius; updateCamera();\n    });\n\n    let dragging = false, lastX = 0, lastY = 0;\n    const canvas = renderer.domElement;\n    canvas.addEventListener('pointerdown', e => {\n      dragging = true; lastX = e.clientX; lastY = e.clientY;\n      canvas.classList.add('dragging'); canvas.setPointerCapture(e.pointerId);\n    });\n    canvas.addEventListener('pointermove', e => {\n      if (!dragging) return;\n      theta -= (e.clientX - lastX) * .006;\n      phi = Math.max(.22, Math.min(Math.PI - .22, phi - (e.clientY - lastY) * .006));\n      lastX = e.clientX; lastY = e.clientY; updateCamera();\n    });\n    function endDrag() { dragging = false; canvas.classList.remove('dragging'); }\n    canvas.addEventListener('pointerup', endDrag);\n    canvas.addEventListener('pointercancel', endDrag);\n    canvas.addEventListener('wheel', e => {\n      e.preventDefault();\n      radius = Math.max(7.5, Math.min(22, radius * Math.exp(e.deltaY * .001)));\n      updateCamera();\n    }, { passive: false });\n\n    addEventListener('resize', () => {\n      camera.aspect = innerWidth / innerHeight;\n      camera.updateProjectionMatrix();\n      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));\n      renderer.setSize(innerWidth, innerHeight);\n    });\n    matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', e => {\n      if (e.matches) { paused = true; syncPause(); }\n    });\n\n    function frame(now) {\n      requestAnimationFrame(frame);\n      const dt = Math.min((now - last) / 1000, .05);\n      last = now;\n      if (paused) return;\n      time += dt * speed;\n      rings.forEach((r, i) => {\n        r.group.rotation.z = r.base.z + Math.sin(time * .22 + i * 2) * .12;\n        r.group.rotation.y = r.base.y + time * r.rate * .24;\n      });\n      // Recalculate transformed path bases after the rings precess.\n      paths.forEach((path, i) => {\n        const e = rings[i].group.rotation;\n        path.u.set(1, 0, 0).applyEuler(e);\n        path.v.set(0, 1, 0).applyEuler(e);\n        path.normal.set(0, 0, 1).applyEuler(e).normalize();\n      });\n      const pulse = 1 + Math.sin(time * 1.6) * .025;\n      core.scale.setScalar(pulse);\n      glow1.scale.setScalar(1 + Math.sin(time * 1.2) * .06);\n      coreLight.intensity = 20 + Math.sin(time * 1.6) * 3;\n      placeInstances(particles, anchors, 0, 0, time);\n      // Divide the blue instances among all three orbital paths.\n      anchors.forEach((d, i) => {\n        const ri = i % 3, path = paths[ri];\n        const a = d.a + time * (.34 + ri * .07);\n        const r = path.radius + d.lane;\n        p.copy(path.u).multiplyScalar(Math.cos(a) * r).addScaledVector(path.v, Math.sin(a) * r);\n        p.addScaledVector(path.normal, Math.sin(a * 3 + ri) * .055); p.y -= .15;\n        dummy.position.copy(p); dummy.scale.setScalar(d.scale); dummy.updateMatrix();\n        particles.setMatrixAt(i, dummy.matrix);\n      });\n      particles.instanceMatrix.needsUpdate = true;\n      placeInstances(copperParticles, copperAnchors, 1, .4, -time * .65);\n      renderer.render(scene, camera);\n    }\n    // Compose a complete first frame even when reduced motion starts paused.\n    rings.forEach((r, i) => paths[i].normal.set(0, 0, 1).applyEuler(r.group.rotation));\n    anchors.forEach((d, i) => {\n      const path = paths[i % 3], a = d.a, r = path.radius + d.lane;\n      p.copy(path.u).multiplyScalar(Math.cos(a) * r).addScaledVector(path.v, Math.sin(a) * r); p.y -= .15;\n      dummy.position.copy(p); dummy.scale.setScalar(d.scale); dummy.updateMatrix(); particles.setMatrixAt(i, dummy.matrix);\n    });\n    placeInstances(copperParticles, copperAnchors, 1, .4, 0);\n    renderer.render(scene, camera);\n    requestAnimationFrame(frame);\n  })();\n  </script>\n</body>\n</html>",
+      "expected": null,
+      "correct": null,
+      "input_tokens": 347,
+      "output_tokens": 4486,
+      "total_tokens": 4833,
+      "reasoning_tokens": 0,
+      "latency_ms": 18780,
+      "model": "Kimi-K3.1",
+      "requested_reasoning_effort": "none",
+      "finish_reason": "stop",
+      "request_id": "chatcmpl-6af18ba493e9153382e5d0ee",
+      "complete": true
+    },
+    {
+      "ok": true,
+      "mode": "scene",
+      "question": "Build a complete, beautiful three.js kinetic sculpture for a developer livestream.\nReturn ONLY a complete HTML document, no Markdown fences and no explanation.\nUse THREE from the provided classic script ./vendor/three.min.js (three.js 0.160.1).\nNo other imports, dependencies, network calls, external assets, logos, people, or eval.\n\nThe artwork: a small luminous cobalt core with three orbiting, tilted metallic rings,\nwarm copper accents, and hundreds of tiny particles that travel in coherent orbital\npaths. It should feel like a physical museum sculpture, not a random particle cloud.\nCreate depth through geometry, perspective, materials, and lighting. Use a dark navy\nbackground. Fill the available 16:9 viewport with a legible, balanced composition.\nAvoid huge white lighting hotspots. Use simple procedural geometry and bounded GPU work.\n\nInclude working native Pause/Resume and Reset view buttons, a speed range slider,\nmouse or pointer drag to orbit the view, responsive resize, and a clear title.\nRespect prefers-reduced-motion by starting paused. Show an explicit readable error\nif WebGL is unavailable. Keep all text at least 16px, with strong contrast and visible\nkeyboard focus. Use requestAnimationFrame, cap pixel ratio at 2, and no shadows or\npostprocessing. Make it run offline when served alongside the provided three.js file.\nDon't assume OrbitControls or any add-ons are available. Include all implementation\ninside this single document. Aim for a polished scene, not a technical wireframe.\nKeep the implementation concise: at most 250 lines and 18,000 characters of HTML.\n",
+      "answer": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n<title>Cobalt Orrery \u2014 Kinetic Sculpture</title>\n<style>\n  :root{color-scheme:dark;font-family:system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif}\n  *{box-sizing:border-box}\n  html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#060d1d;color:#edf3ff}\n  canvas{display:block;width:100%;height:100%;cursor:grab;touch-action:none;outline:none}\n  canvas.dragging{cursor:grabbing}\n  canvas:focus-visible{outline:3px solid #8fb2ff;outline-offset:-4px}\n  header{position:fixed;top:24px;left:28px;z-index:2;pointer-events:none;text-shadow:0 2px 16px #000}\n  h1{margin:0;font-size:clamp(24px,2.3vw,38px);font-weight:500;letter-spacing:.04em}\n  header p{margin:7px 0 0;color:#a9b9d5;font-size:16px;letter-spacing:.12em;text-transform:uppercase}\n  .panel{position:fixed;z-index:3;left:50%;bottom:22px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid #344463;border-radius:14px;background:rgba(8,16,32,.88);backdrop-filter:blur(10px);font-size:16px;white-space:nowrap}\n  button{min-height:42px;padding:8px 16px;border:1px solid #526583;border-radius:9px;background:#15213a;color:#f4f7ff;font:inherit;cursor:pointer}\n  button:hover{background:#203152;border-color:#8fa8d2}\n  button:focus-visible,input:focus-visible{outline:3px solid #a9c4ff;outline-offset:3px}\n  .speed{display:flex;align-items:center;gap:10px;padding:0 5px}\n  input[type=range]{width:130px;accent-color:#78a0ff;cursor:pointer}\n  output{min-width:40px;color:#c9d9f7;font-variant-numeric:tabular-nums}\n  #error{position:fixed;inset:0;z-index:10;display:none;place-items:center;padding:30px;background:#060d1d;text-align:center}\n  #error div{max-width:620px;font-size:20px;line-height:1.6}\n  #error strong{display:block;font-size:28px;color:#ffb59d;margin-bottom:12px}\n  @media(max-width:650px){header{top:18px;left:20px}.panel{bottom:14px;gap:8px;padding:10px;flex-wrap:wrap;justify-content:center;width:calc(100% - 24px)}input[type=range]{width:100px}button{padding:8px 12px}}\n</style>\n</head>\n<body>\n<canvas id=\"view\" tabindex=\"0\" aria-label=\"Interactive cobalt kinetic sculpture. Drag or use arrow keys to orbit; use plus and minus to zoom.\"></canvas>\n<header><h1>Cobalt Orrery</h1><p>A kinetic study in metal and light</p></header>\n<div class=\"panel\" aria-label=\"Sculpture controls\">\n  <button id=\"toggle\" type=\"button\">Pause</button>\n  <button id=\"reset\" type=\"button\">Reset view</button>\n  <label class=\"speed\" for=\"speed\">Speed <input id=\"speed\" type=\"range\" min=\"0.1\" max=\"2\" step=\"0.1\" value=\"1\"><output id=\"rate\" for=\"speed\">1.0\u00d7</output></label>\n</div>\n<div id=\"error\" role=\"alert\"><div><strong>WebGL is unavailable</strong>This sculpture needs WebGL. Please enable hardware acceleration or open this page in a browser with WebGL support.</div></div>\n<noscript><div style=\"position:fixed;inset:0;display:grid;place-items:center;background:#060d1d;font-size:20px;padding:30px\">JavaScript is required to display this sculpture.</div></noscript>\n<script src=\"./vendor/three.min.js\"></script>\n<script>\n(function(){\n  'use strict';\n  const canvas=document.getElementById('view'),error=document.getElementById('error');\n  if(!window.THREE){error.style.display='grid';return;}\n  let renderer;\n  try{renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});}\n  catch(e){error.style.display='grid';return;}\n  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));\n  renderer.setClearColor(0x060d1d);\n  renderer.outputColorSpace=THREE.SRGBColorSpace;\n  renderer.toneMapping=THREE.ACESFilmicToneMapping;\n  renderer.toneMappingExposure=1.05;\n  const scene=new THREE.Scene();\n  scene.fog=new THREE.FogExp2(0x060d1d,.026);\n  const camera=new THREE.PerspectiveCamera(42,1,.1,60);\n  const target=new THREE.Vector3(0,-.15,0);\n  let theta=.48,phi=1.39,radius=11.2;\n  function positionCamera(){\n    camera.position.set(radius*Math.sin(phi)*Math.sin(theta),target.y+radius*Math.cos(phi),radius*Math.sin(phi)*Math.cos(theta));\n    camera.lookAt(target);\n  }\n  scene.add(new THREE.HemisphereLight(0x8ca8ff,0x160f16,1.25));\n  const warm=new THREE.DirectionalLight(0xffc397,2.1);warm.position.set(4,6,5);scene.add(warm);\n  const cool=new THREE.DirectionalLight(0x6688ff,1.8);cool.position.set(-5,2,-3);scene.add(cool);\n  const coreLight=new THREE.PointLight(0x3266ff,16,7,2);coreLight.position.set(0,.2,0);scene.add(coreLight);\n  const copperLight=new THREE.PointLight(0xff8b4f,9,7,2);copperLight.position.set(3,-1,2);scene.add(copperLight);\n  const sculpture=new THREE.Group();scene.add(sculpture);\n  const metal=new THREE.MeshStandardMaterial({color:0x788aa9,metalness:.82,roughness:.24});\n  const copper=new THREE.MeshStandardMaterial({color:0xc87946,metalness:.8,roughness:.25,emissive:0x321006,emissiveIntensity:.18});\n  const darkMetal=new THREE.MeshStandardMaterial({color:0x111b2d,metalness:.7,roughness:.35});\n  const coreMat=new THREE.MeshStandardMaterial({color:0x174ee8,emissive:0x064dff,emissiveIntensity:1.45,metalness:.3,roughness:.22});\n  const core=new THREE.Mesh(new THREE.SphereGeometry(.38,40,28),coreMat);sculpture.add(core);\n  const glow=new THREE.Mesh(new THREE.SphereGeometry(.5,28,20),new THREE.MeshBasicMaterial({color:0x286cff,transparent:true,opacity:.13,blending:THREE.AdditiveBlending,depthWrite:false}));sculpture.add(glow);\n  const equator=new THREE.Mesh(new THREE.TorusGeometry(.48,.018,8,64),copper);equator.rotation.x=Math.PI/2;sculpture.add(equator);\n  const orbitSystems=[];\n  const configs=[\n    {r:1.75,tilt:[.72,.18,.12],speed:.34,color:0x72a1ff},\n    {r:2.35,tilt:[1.22,-.55,.62],speed:-.23,color:0xffb079},\n    {r:3.02,tilt:[.42,.86,-.3],speed:.16,color:0x83aaff}\n  ];\n  configs.forEach((cfg,index)=>{\n    const pivot=new THREE.Group();pivot.rotation.set(...cfg.tilt);sculpture.add(pivot);\n    pivot.add(new THREE.Mesh(new THREE.TorusGeometry(cfg.r,.055,12,160),metal));\n    for(let j=0;j<3;j++){\n      const arc=new THREE.Mesh(new THREE.TorusGeometry(cfg.r,.074,10,30,.48),copper);\n      arc.rotation.z=j*Math.PI*2/3+index*.37;pivot.add(arc);\n    }\n    const bead=new THREE.Mesh(new THREE.SphereGeometry(.11,18,12),copper);pivot.add(bead);\n    const count=240,positions=new Float32Array(count*3),colors=new Float32Array(count*3),phases=new Float32Array(count),radii=new Float32Array(count),heights=new Float32Array(count);\n    const blue=new THREE.Color(cfg.color),amber=new THREE.Color(0xffa86f);\n    for(let i=0;i<count;i++){\n      phases[i]=i/count*Math.PI*2+.025*Math.sin(i*2.39);\n      radii[i]=cfg.r+.075*Math.sin(i*1.73);\n      heights[i]=.052*Math.cos(i*2.17);\n      const c=i%9===0?amber:blue;\n      colors[i*3]=c.r;colors[i*3+1]=c.g;colors[i*3+2]=c.b;\n    }\n    const geometry=new THREE.BufferGeometry();\n    geometry.setAttribute('position',new THREE.BufferAttribute(positions,3).setUsage(THREE.DynamicDrawUsage));\n    geometry.setAttribute('color',new THREE.BufferAttribute(colors,3));\n    const points=new THREE.Points(geometry,new THREE.PointsMaterial({size:.043,vertexColors:true,transparent:true,opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false,sizeAttenuation:true}));\n    pivot.add(points);\n    orbitSystems.push({pivot,cfg,bead,positions,phases,radii,heights,geometry,baseX:cfg.tilt[0],baseY:cfg.tilt[1]});\n  });\n  const stem=new THREE.Mesh(new THREE.CylinderGeometry(.035,.06,2.95,16),copper);stem.position.y=-1.78;scene.add(stem);\n  const base=new THREE.Mesh(new THREE.CylinderGeometry(2.05,2.2,.22,80),darkMetal);base.position.y=-3.3;scene.add(base);\n  const lip=new THREE.Mesh(new THREE.TorusGeometry(2.08,.035,10,100),copper);lip.rotation.x=Math.PI/2;lip.position.y=-3.19;scene.add(lip);\n  const lowerBase=new THREE.Mesh(new THREE.CylinderGeometry(1.72,1.85,.16,64),metal);lowerBase.position.y=-3.48;scene.add(lowerBase);\n  const floor=new THREE.Mesh(new THREE.CircleGeometry(16,72),new THREE.MeshStandardMaterial({color:0x070e1b,roughness:.86,metalness:.12}));\n  floor.rotation.x=-Math.PI/2;floor.position.y=-3.57;scene.add(floor);\n  function updateScene(t){\n    orbitSystems.forEach((o,i)=>{\n      o.pivot.rotation.x=o.baseX+Math.sin(t*.15+i)*.055;\n      o.pivot.rotation.y=o.baseY+Math.sin(t*.12+i*1.7)*.09;\n      for(let j=0;j<o.phases.length;j++){\n        const a=o.phases[j]+t*o.cfg.speed;\n        const r=o.radii[j]+.018*Math.sin(a*3+t*.35);\n        o.positions[j*3]=Math.cos(a)*r;\n        o.positions[j*3+1]=Math.sin(a)*r;\n        o.positions[j*3+2]=o.heights[j]+.025*Math.sin(a*2+t*.25);\n      }\n      o.geometry.attributes.position.needsUpdate=true;\n      const a=t*o.cfg.speed*1.8+i*2.1;\n      o.bead.position.set(Math.cos(a)*o.cfg.r,Math.sin(a)*o.cfg.r,0);\n    });\n    const pulse=1+Math.sin(t*1.7)*.025;\n    core.scale.setScalar(pulse);glow.scale.setScalar(1+Math.sin(t*1.35)*.07);\n    coreMat.emissiveIntensity=1.4+Math.sin(t*1.4)*.12;\n  }\n  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');\n  let paused=reduced.matches,speed=1,time=0,last=performance.now(),dragging=false,px=0,py=0;\n  const toggle=document.getElementById('toggle');\n  toggle.textContent=paused?'Resume':'Pause';\n  toggle.setAttribute('aria-pressed',String(paused));\n  toggle.addEventListener('click',()=>{paused=!paused;toggle.textContent=paused?'Resume':'Pause';toggle.setAttribute('aria-pressed',String(paused));});\n  document.getElementById('reset').addEventListener('click',()=>{theta=.48;phi=1.39;radius=11.2;positionCamera();});\n  const slider=document.getElementById('speed'),rate=document.getElementById('rate');\n  slider.addEventListener('input',()=>{speed=Number(slider.value);rate.value=speed.toFixed(1)+'\u00d7';rate.textContent=rate.value;});\n  canvas.addEventListener('pointerdown',e=>{dragging=true;px=e.clientX;py=e.clientY;canvas.setPointerCapture(e.pointerId);canvas.classList.add('dragging');});\n  canvas.addEventListener('pointermove',e=>{\n    if(!dragging)return;\n    theta-=(e.clientX-px)*.006;phi=Math.max(.3,Math.min(2.75,phi+(e.clientY-py)*.006));\n    px=e.clientX;py=e.clientY;positionCamera();\n  });\n  function endDrag(){dragging=false;canvas.classList.remove('dragging');}\n  canvas.addEventListener('pointerup',endDrag);canvas.addEventListener('pointercancel',endDrag);\n  canvas.addEventListener('wheel',e=>{e.preventDefault();radius=Math.max(7,Math.min(17,radius+e.deltaY*.008));positionCamera();},{passive:false});\n  canvas.addEventListener('keydown',e=>{\n    let used=true;\n    if(e.key==='ArrowLeft')theta-=.1;else if(e.key==='ArrowRight')theta+=.1;\n    else if(e.key==='ArrowUp')phi=Math.max(.3,phi-.1);else if(e.key==='ArrowDown')phi=Math.min(2.75,phi+.1);\n    else if(e.key==='+'||e.key==='=')radius=Math.max(7,radius-.5);else if(e.key==='-')radius=Math.min(17,radius+.5);else used=false;\n    if(used){e.preventDefault();positionCamera();}\n  });\n  function resize(){\n    const w=window.innerWidth,h=window.innerHeight;\n    renderer.setSize(w,h,false);camera.aspect=w/h;camera.fov=camera.aspect<1?58:42;camera.updateProjectionMatrix();\n  }\n  window.addEventListener('resize',resize);resize();positionCamera();updateScene(0);\n  function frame(now){\n    requestAnimationFrame(frame);\n    const dt=Math.min((now-last)/1000,.05);last=now;\n    if(!paused){time+=dt*speed;updateScene(time);}\n    renderer.render(scene,camera);\n  }\n  requestAnimationFrame(frame);\n})();\n</script>\n</body>\n</html>",
+      "expected": null,
+      "correct": null,
+      "input_tokens": 415,
+      "output_tokens": 5848,
+      "total_tokens": 6263,
+      "reasoning_tokens": 2356,
+      "latency_ms": 32545,
+      "model": "Kimi-K3.1",
+      "requested_reasoning_effort": "low",
+      "finish_reason": "stop",
+      "request_id": "chatcmpl-6af18a6c181723f1ab0b7c0e",
+      "complete": true
+    },
+    {
+      "ok": true,
+      "mode": "scene",
+      "question": "Build a complete, beautiful three.js kinetic sculpture for a developer livestream.\nReturn ONLY a complete HTML document, no Markdown fences and no explanation.\nUse THREE from the provided classic script ./vendor/three.min.js (three.js 0.160.1).\nNo other imports, dependencies, network calls, external assets, logos, people, or eval.\n\nThe artwork: a small luminous cobalt core with three orbiting, tilted metallic rings,\nwarm copper accents, and hundreds of tiny particles that travel in coherent orbital\npaths. It should feel like a physical museum sculpture, not a random particle cloud.\nCreate depth through geometry, perspective, materials, and lighting. Use a dark navy\nbackground. Fill the available 16:9 viewport with a legible, balanced composition.\nAvoid huge white lighting hotspots. Use simple procedural geometry and bounded GPU work.\n\nInclude working native Pause/Resume and Reset view buttons, a speed range slider,\nmouse or pointer drag to orbit the view, responsive resize, and a clear title.\nRespect prefers-reduced-motion by starting paused. Show an explicit readable error\nif WebGL is unavailable. Keep all text at least 16px, with strong contrast and visible\nkeyboard focus. Use requestAnimationFrame, cap pixel ratio at 2, and no shadows or\npostprocessing. Make it run offline when served alongside the provided three.js file.\nDon't assume OrbitControls or any add-ons are available. Include all implementation\ninside this single document. Aim for a polished scene, not a technical wireframe.\nKeep the implementation concise: at most 250 lines and 18,000 characters of HTML.\n",
+      "answer": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"utf-8\">\n<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n<title>Cobalt Orbit \u2014 Kinetic Sculpture</title>\n<style>\n  :root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,\"Segoe UI\",sans-serif}\n  *{box-sizing:border-box}\n  html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#050b17;color:#eef5ff}\n  body{position:relative}\n  #stage,canvas{position:absolute;inset:0;width:100%;height:100%}\n  canvas{display:block;cursor:grab;touch-action:none;outline-offset:-4px}\n  canvas.dragging{cursor:grabbing}\n  header{position:absolute;z-index:2;top:28px;left:32px;pointer-events:none;text-shadow:0 2px 18px #020610}\n  .kicker{margin:0 0 7px;color:#efba8e;font-size:16px;font-weight:650;letter-spacing:.18em;text-transform:uppercase}\n  h1{margin:0;font-size:clamp(28px,3vw,46px);font-weight:520;letter-spacing:-.035em;line-height:1.05}\n  .subtitle{margin:10px 0 0;color:#bfd0e6;font-size:16px;letter-spacing:.02em}\n  .hint{position:absolute;z-index:2;right:26px;top:28px;padding:9px 13px;border:1px solid #2b405d;border-radius:999px;background:#07111ecf;color:#c4d5e9;font-size:16px;pointer-events:none}\n  .controls{position:absolute;z-index:3;left:50%;bottom:24px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;width:max-content;max-width:calc(100% - 32px);padding:12px;border:1px solid #344d6c;border-radius:16px;background:#081321ed;box-shadow:0 12px 40px #0007;backdrop-filter:blur(12px)}\n  button{min-height:46px;padding:0 18px;border:1px solid #476181;border-radius:10px;background:#12243a;color:#f2f7ff;font:inherit;font-size:16px;font-weight:650;cursor:pointer}\n  button:hover{background:#1b324f;border-color:#7994b6}\n  #toggle{background:#b9784f;border-color:#dcaa83;color:#09101c}\n  #toggle:hover{background:#d09264}\n  :focus-visible{outline:3px solid #ffd09f;outline-offset:3px}\n  .speed{width:210px;padding:0 7px}\n  .speed label{display:flex;justify-content:space-between;gap:14px;margin-bottom:5px;color:#dbe7f5;font-size:16px}\n  output{color:#efba8e;font-variant-numeric:tabular-nums}\n  input[type=range]{display:block;width:100%;height:24px;margin:0;accent-color:#e0a477;cursor:pointer}\n  #error{position:absolute;z-index:10;inset:0;display:grid;place-content:center;padding:32px;background:#050b17;text-align:center}\n  #error[hidden]{display:none}\n  #error h2{margin:0 0 12px;color:#ffd0ae;font-size:28px}\n  #error p{max-width:560px;margin:0;color:#e3ecf7;font-size:18px;line-height:1.6}\n  @media(max-width:700px){\n    header{top:18px;left:18px}.hint{display:none}.subtitle{max-width:260px}\n    .controls{bottom:12px;flex-wrap:wrap;justify-content:center;gap:9px;width:calc(100% - 24px);padding:10px}\n    .speed{order:3;flex:1 1 100%;width:auto;max-width:380px}.speed label{margin-bottom:0}\n    button{flex:1;padding:0 12px}\n  }\n</style>\n</head>\n<body>\n<main id=\"stage\" aria-label=\"Interactive three-dimensional kinetic sculpture\"></main>\n<header>\n  <p class=\"kicker\">Kinetic study \u00b7 No. 03</p>\n  <h1>Cobalt Orbit</h1>\n  <p class=\"subtitle\">A luminous heart, held in motion.</p>\n</header>\n<div class=\"hint\">Drag to orbit \u00b7 Scroll to zoom</div>\n<section class=\"controls\" aria-label=\"Sculpture controls\">\n  <button id=\"toggle\" type=\"button\" aria-pressed=\"false\">Pause</button>\n  <div class=\"speed\">\n    <label for=\"speed\">Motion speed <output id=\"speedValue\" for=\"speed\">1.0\u00d7</output></label>\n    <input id=\"speed\" type=\"range\" min=\"0\" max=\"2\" step=\"0.1\" value=\"1\" aria-label=\"Motion speed\">\n  </div>\n  <button id=\"reset\" type=\"button\">Reset view</button>\n</section>\n<div id=\"error\" role=\"alert\" hidden>\n  <h2>WebGL is unavailable</h2>\n  <p id=\"errorText\">This sculpture needs WebGL. Enable hardware acceleration or open this page in a WebGL-capable browser.</p>\n</div>\n<script src=\"./vendor/three.min.js\"></script>\n<script>\n(() => {\n  'use strict';\n  const stage=document.getElementById('stage'), toggle=document.getElementById('toggle');\n  const speedInput=document.getElementById('speed'), speedValue=document.getElementById('speedValue');\n  const errorBox=document.getElementById('error');\n  let failed=false;\n  function fail(message){\n    failed=true; errorBox.hidden=false;\n    if(message) document.getElementById('errorText').textContent=message;\n    document.querySelectorAll('button,input').forEach(el=>el.disabled=true);\n    document.querySelector('.controls').style.display='none';\n  }\n  if(!window.THREE){fail('The local three.js library could not be loaded, and WebGL cannot be started. Check that ./vendor/three.min.js is available.');return;}\n  let renderer;\n  try{renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});}\n  catch(e){fail();return;}\n  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));\n  renderer.outputColorSpace=THREE.SRGBColorSpace;\n  renderer.toneMapping=THREE.ACESFilmicToneMapping;\n  renderer.toneMappingExposure=1.02;\n  renderer.setClearColor(0x050b17);\n  const canvas=renderer.domElement;\n  canvas.tabIndex=0;\n  canvas.setAttribute('aria-label','Cobalt Orbit. Drag or use arrow keys to orbit, mouse wheel or plus and minus to zoom, and Home to reset the view.');\n  stage.appendChild(canvas);\n  canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();fail('The WebGL context was lost. Reload this page to restore the sculpture.');});\n\n  const scene=new THREE.Scene();\n  scene.background=new THREE.Color(0x050b17);\n  scene.fog=new THREE.Fog(0x050b17,11,25);\n  const camera=new THREE.PerspectiveCamera(42,1,.1,60);\n  const target=new THREE.Vector3(0,-.12,0);\n  scene.add(new THREE.HemisphereLight(0x91b5ed,0x111525,1.15));\n  const key=new THREE.DirectionalLight(0xdceaff,2.8); key.position.set(4,7,6); scene.add(key);\n  const warm=new THREE.DirectionalLight(0xffb782,2.1); warm.position.set(-5,2,3); scene.add(warm);\n  const rim=new THREE.DirectionalLight(0x477cff,2.4); rim.position.set(2,1,-6); scene.add(rim);\n  const coreLight=new THREE.PointLight(0x1755ff,10,6,2); scene.add(coreLight);\n\n  const sculpture=new THREE.Group(); scene.add(sculpture);\n  const steel=new THREE.MeshStandardMaterial({color:0x91a8bd,metalness:.82,roughness:.28});\n  const copper=new THREE.MeshStandardMaterial({color:0xc27c50,metalness:.78,roughness:.3});\n  const coreMat=new THREE.MeshStandardMaterial({color:0x074bd8,emissive:0x073dff,emissiveIntensity:2.25,metalness:.3,roughness:.2});\n  const core=new THREE.Mesh(new THREE.SphereGeometry(.56,48,32),coreMat); sculpture.add(core);\n  const halo=new THREE.Mesh(new THREE.SphereGeometry(.7,32,24),new THREE.MeshBasicMaterial({color:0x286dff,transparent:true,opacity:.075,depthWrite:false,side:THREE.BackSide}));\n  sculpture.add(halo);\n\n  const specs=[\n    {r:1.7,tube:.037,rot:[.52,.2,.25],spin:.16,rate:.38},\n    {r:2.3,tube:.031,rot:[1.22,-.35,-.42],spin:-.115,rate:-.27},\n    {r:2.88,tube:.027,rot:[.28,1.02,.18],spin:.075,rate:.19}\n  ];\n  const spinners=[],frames=[],beadGeometry=new THREE.SphereGeometry(.075,12,8),dummy=new THREE.Object3D();\n  specs.forEach((s,i)=>{\n    const pivot=new THREE.Group(); pivot.rotation.set(...s.rot); sculpture.add(pivot);\n    const spinner=new THREE.Group(); pivot.add(spinner); spinners.push(spinner);\n    frames.push(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(...s.rot)));\n    const mat=i===1?copper:steel;\n    spinner.add(new THREE.Mesh(new THREE.TorusGeometry(s.r,s.tube,10,192),mat));\n    const path=[];\n    for(let j=0;j<192;j++){const a=j/192*Math.PI*2;path.push(new THREE.Vector3(Math.cos(a)*(s.r+.105),Math.sin(a)*(s.r+.105),0));}\n    const line=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(path),new THREE.LineBasicMaterial({color:i===1?0xc58257:0x517fb3,transparent:true,opacity:.22}));\n    spinner.add(line);\n    const beads=new THREE.InstancedMesh(beadGeometry,copper,6);\n    for(let j=0;j<6;j++){\n      const a=j/6*Math.PI*2+i*.37;\n      dummy.position.set(Math.cos(a)*s.r,Math.sin(a)*s.r,0);\n      dummy.scale.setScalar(j%3===0?1.25:.7); dummy.updateMatrix(); beads.setMatrixAt(j,dummy.matrix);\n    }\n    spinner.add(beads);\n  });\n\n  const floor=new THREE.Mesh(new THREE.CircleGeometry(8,96),new THREE.MeshStandardMaterial({color:0x091423,metalness:.15,roughness:.92}));\n  floor.rotation.x=-Math.PI/2; floor.position.y=-3.4; scene.add(floor);\n  const plinth=new THREE.Mesh(new THREE.CylinderGeometry(3.48,3.68,.32,96),new THREE.MeshStandardMaterial({color:0x182638,metalness:.55,roughness:.52}));\n  plinth.position.y=-3.22; scene.add(plinth);\n  const trim=new THREE.Mesh(new THREE.TorusGeometry(3.49,.018,8,128),copper);\n  trim.rotation.x=Math.PI/2; trim.position.y=-3.07; scene.add(trim);\n  const stem=new THREE.Mesh(new THREE.CylinderGeometry(.022,.04,2.5,12),copper); stem.position.y=-1.8; scene.add(stem);\n  const socket=new THREE.Mesh(new THREE.CylinderGeometry(.17,.22,.14,32),copper); socket.position.y=-3; scene.add(socket);\n\n  const dotCanvas=document.createElement('canvas'); dotCanvas.width=dotCanvas.height=32;\n  const ctx=dotCanvas.getContext('2d'),gradient=ctx.createRadialGradient(16,16,0,16,16,16);\n  gradient.addColorStop(0,'rgba(255,255,255,1)'); gradient.addColorStop(.25,'rgba(255,255,255,.9)'); gradient.addColorStop(1,'rgba(255,255,255,0)');\n  ctx.fillStyle=gradient; ctx.fillRect(0,0,32,32);\n  const COUNT=840,positions=new Float32Array(COUNT*3),colors=new Float32Array(COUNT*3);\n  const phases=new Float32Array(COUNT),radii=new Float32Array(COUNT),depths=new Float32Array(COUNT);\n  let seed=4817; function random(){seed=(seed*16807)%2147483647;return(seed-1)/2147483646;}\n  const blue=new THREE.Color(0x74a7ff),amber=new THREE.Color(0xf0a36c),v=new THREE.Vector3();\n  for(let i=0;i<COUNT;i++){\n    const band=i%3; phases[i]=random()*Math.PI*2;\n    radii[i]=specs[band].r+(random()-.5)*.19; depths[i]=(random()-.5)*.07;\n    const c=(band===1?amber:blue).clone().multiplyScalar(.65+random()*.35);\n    colors.set([c.r,c.g,c.b],i*3);\n  }\n  const particleGeometry=new THREE.BufferGeometry();\n  particleGeometry.setAttribute('position',new THREE.BufferAttribute(positions,3).setUsage(THREE.DynamicDrawUsage));\n  particleGeometry.setAttribute('color',new THREE.BufferAttribute(colors,3));\n  const particles=new THREE.Points(particleGeometry,new THREE.PointsMaterial({size:.052,map:new THREE.CanvasTexture(dotCanvas),vertexColors:true,transparent:true,opacity:.82,depthWrite:false,blending:THREE.AdditiveBlending}));\n  sculpture.add(particles);\n\n  let theta=.55,phi=1.18,dist=10.8,fit=1,dragging=false,lastX=0,lastY=0;\n  let paused=window.matchMedia('(prefers-reduced-motion: reduce)').matches,speed=1,time=.8;\n  function updateCamera(){\n    camera.position.set(dist*Math.sin(phi)*Math.sin(theta),dist*Math.cos(phi),dist*Math.sin(phi)*Math.cos(theta)).add(target);\n    camera.lookAt(target);\n  }\n  function resetView(){theta=.55;phi=1.18;dist=10.8*fit;updateCamera();}\n  function resize(){\n    const oldFit=fit,w=innerWidth,h=innerHeight;\n    camera.aspect=w/h; fit=Math.max(1,1/camera.aspect); dist=dist/oldFit*fit;\n    camera.updateProjectionMatrix(); renderer.setSize(w,h,false); updateCamera();\n  }\n  function syncPause(){toggle.textContent=paused?'Resume':'Pause';toggle.setAttribute('aria-pressed',String(paused));}\n  toggle.addEventListener('click',()=>{paused=!paused;syncPause();});\n  document.getElementById('reset').addEventListener('click',resetView);\n  speedInput.addEventListener('input',()=>{speed=Number(speedInput.value);speedValue.value=speed.toFixed(1)+'\u00d7';speedInput.setAttribute('aria-valuetext',speed.toFixed(1)+' times');});\n  canvas.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;canvas.setPointerCapture(e.pointerId);canvas.classList.add('dragging');canvas.focus({preventScroll:true});});\n  canvas.addEventListener('pointermove',e=>{\n    if(!dragging)return;\n    theta-=(e.clientX-lastX)*.005; phi=Math.max(.28,Math.min(2.72,phi-(e.clientY-lastY)*.005));\n    lastX=e.clientX;lastY=e.clientY;updateCamera();\n  });\n  function endDrag(){dragging=false;canvas.classList.remove('dragging');}\n  canvas.addEventListener('pointerup',endDrag); canvas.addEventListener('pointercancel',endDrag);\n  canvas.addEventListener('wheel',e=>{e.preventDefault();dist=Math.max(7*fit,Math.min(16*fit,dist*Math.exp(e.deltaY*.001)));updateCamera();},{passive:false});\n  canvas.addEventListener('keydown',e=>{\n    let used=true;\n    if(e.key==='ArrowLeft')theta-=.09;else if(e.key==='ArrowRight')theta+=.09;\n    else if(e.key==='ArrowUp')phi=Math.max(.28,phi-.08);else if(e.key==='ArrowDown')phi=Math.min(2.72,phi+.08);\n    else if(e.key==='+'||e.key==='=')dist=Math.max(7*fit,dist*.93);else if(e.key==='-')dist=Math.min(16*fit,dist*1.07);\n    else if(e.key==='Home')resetView();else used=false;\n    if(used){e.preventDefault();updateCamera();}\n  });\n  addEventListener('resize',resize); resize(); resetView(); syncPause();\n\n  let previous=performance.now();\n  function frame(now){\n    if(failed)return;\n    requestAnimationFrame(frame);\n    const dt=Math.min((now-previous)/1000,.04); previous=now;\n    if(!paused)time+=dt*speed;\n    sculpture.rotation.y=.08+time*.035;\n    spinners.forEach((s,i)=>s.rotation.z=time*specs[i].spin);\n    core.scale.setScalar(1+Math.sin(time*1.35)*.025);\n    halo.material.opacity=.065+Math.sin(time*1.35)*.012;\n    coreLight.intensity=9+Math.sin(time*1.35)*.7;\n    for(let i=0;i<COUNT;i++){\n      const band=i%3,a=phases[i]+time*specs[band].rate,r=radii[i];\n      v.set(Math.cos(a)*r,Math.sin(a)*r,depths[i]).applyMatrix4(frames[band]);\n      positions[i*3]=v.x;positions[i*3+1]=v.y;positions[i*3+2]=v.z;\n    }\n    particleGeometry.attributes.position.needsUpdate=true;\n    renderer.render(scene,camera);\n  }\n  requestAnimationFrame(frame);\n})();\n</script>\n</body>\n</html>",
+      "expected": null,
+      "correct": null,
+      "input_tokens": 415,
+      "output_tokens": 10550,
+      "total_tokens": 10965,
+      "reasoning_tokens": 6423,
+      "latency_ms": 62332,
+      "model": "Kimi-K3.1",
+      "requested_reasoning_effort": "high",
+      "finish_reason": "stop",
+      "request_id": "chatcmpl-6af18a919e3310c23a167350",
+      "complete": true
+    }
+  ],
+  "image": {
+    "ok": true,
+    "mode": "image",
+    "question": "Read the supplied chart. Which orbit has the most particles, and how many? Return only JSON with keys \"orbit\" and \"particles\".",
+    "answer": "{\"orbit\": \"Copper\", \"particles\": 240}",
+    "expected": {
+      "orbit": "copper",
+      "particles": 240
+    },
+    "correct": true,
+    "input_tokens": 1130,
+    "output_tokens": 20,
+    "total_tokens": 1150,
+    "reasoning_tokens": 0,
+    "latency_ms": 4646,
+    "model": "Kimi-K3.1",
+    "requested_reasoning_effort": "none",
+    "finish_reason": "stop",
+    "request_id": "chatcmpl-6af18b3ebeef6f35cf2f649e",
+    "complete": true
+  },
+  "long_context": {
+    "ok": true,
+    "mode": "long",
+    "question": "In SOURCE sdk/ai/azure-ai-projects/CHANGELOG.md, what is the first level-two release heading? Return it verbatim.",
+    "answer": "## 2.10.0 (2026-10-30)",
+    "expected": "2.10.0 (2026-10-30)",
+    "correct": true,
+    "input_tokens": 9240,
+    "output_tokens": 22,
+    "total_tokens": 9262,
+    "reasoning_tokens": 0,
+    "latency_ms": 5492,
+    "model": "Kimi-K3.1",
+    "requested_reasoning_effort": "none",
+    "finish_reason": "stop",
+    "request_id": "chatcmpl-6af18bbba3b60834a67a6055",
+    "complete": true
+  },
+  "parameters": {
+    "max_completion_tokens": 12000,
+    "retries": 0,
+    "stream": false
+  },
+  "attempts": [
+    {
+      "file": "scene-low.json",
+      "record": {
+        "ok": false,
+        "mode": "scene",
+        "question": null,
+        "answer": null,
+        "expected": null,
+        "correct": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "latency_ms": null,
+        "model": "kimi-k3-1-pro",
+        "requested_reasoning_effort": "low",
+        "error": "Incomplete response: finish_reason=length; input_tokens=396; output_tokens=8192"
+      }
+    },
+    {
+      "file": "result-low.json",
+      "record": {
+        "ok": false,
+        "mode": "scene",
+        "question": null,
+        "answer": null,
+        "expected": null,
+        "correct": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "latency_ms": null,
+        "model": "kimi-k3-1-pro",
+        "requested_reasoning_effort": "low",
+        "error": "The specified endpoint does not exist, please check if the endpoint name is correct and the endpoint creation was successful."
+      }
+    },
+    {
+      "file": "result-high.json",
+      "record": {
+        "ok": false,
+        "mode": "scene",
+        "question": null,
+        "answer": null,
+        "expected": null,
+        "correct": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "latency_ms": null,
+        "model": "kimi-k3-1-pro",
+        "requested_reasoning_effort": "high",
+        "error": "The specified endpoint does not exist, please check if the endpoint name is correct and the endpoint creation was successful."
+      }
+    },
+    {
+      "file": "scene-low-final.json",
+      "record": {
+        "ok": false,
+        "mode": "scene",
+        "question": null,
+        "answer": null,
+        "expected": null,
+        "correct": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "latency_ms": null,
+        "model": "kimi-k3-1-pro",
+        "requested_reasoning_effort": "low",
+        "error": "The specified endpoint does not exist, please check if the endpoint name is correct and the endpoint creation was successful."
+      }
+    },
+    {
+      "file": "scene-high-final.json",
+      "record": {
+        "ok": false,
+        "mode": "scene",
+        "question": null,
+        "answer": null,
+        "expected": null,
+        "correct": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "latency_ms": null,
+        "model": "kimi-k3-1-pro",
+        "requested_reasoning_effort": "high",
+        "error": "The specified endpoint does not exist, please check if the endpoint name is correct and the endpoint creation was successful."
+      }
+    },
+    {
+      "file": "image-result.json",
+      "record": {
+        "ok": false,
+        "mode": "image",
+        "question": null,
+        "answer": null,
+        "expected": null,
+        "correct": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "latency_ms": null,
+        "model": "kimi-k3-1-pro",
+        "requested_reasoning_effort": "low",
+        "error": "The specified endpoint does not exist, please check if the endpoint name is correct and the endpoint creation was successful."
+      }
+    },
+    {
+      "file": "image-none.json",
+      "record": {
+        "ok": false,
+        "mode": "image",
+        "question": "Read the supplied chart. Which orbit has the most particles, and how many? Return only JSON with keys \"orbit\" and \"particles\".",
+        "answer": "{\"orbit\":\"Copper\",\"particles\":240}",
+        "expected": {
+          "orbit": "copper",
+          "particles": 240
+        },
+        "correct": false,
+        "input_tokens": 1130,
+        "output_tokens": 17,
+        "total_tokens": 1147,
+        "reasoning_tokens": 0,
+        "latency_ms": 4423,
+        "model": "Kimi-K3.1",
+        "requested_reasoning_effort": "none",
+        "finish_reason": "stop",
+        "request_id": "chatcmpl-6af18a0dae4741eccfcad1cd",
+        "complete": true
+      }
+    },
+    {
+      "file": "long-result.json",
+      "record": {
+        "ok": false,
+        "mode": "long",
+        "question": null,
+        "answer": null,
+        "expected": null,
+        "correct": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "latency_ms": null,
+        "model": "kimi-k3-1-pro",
+        "requested_reasoning_effort": "none",
+        "error": "The specified endpoint does not exist, please check if the endpoint name is correct and the endpoint creation was successful."
+      }
+    },
+    {
+      "file": "result-none.json",
+      "record": {
+        "ok": false,
+        "mode": "scene",
+        "question": null,
+        "answer": null,
+        "expected": null,
+        "correct": null,
+        "input_tokens": null,
+        "output_tokens": null,
+        "latency_ms": null,
+        "model": "kimi-k3-1-pro",
+        "requested_reasoning_effort": "none",
+        "error": "Model did not return a complete HTML document."
+      }
+    },
+    {
+      "file": "probe-low.json",
+      "record": {
+        "ok": true,
+        "mode": "probe",
+        "question": "Reply with the single word READY.",
+        "answer": "READY",
+        "expected": "READY",
+        "correct": true,
+        "input_tokens": 93,
+        "output_tokens": 26,
+        "total_tokens": 119,
+        "reasoning_tokens": 15,
+        "latency_ms": 15090,
+        "model": "Kimi-K3.1",
+        "requested_reasoning_effort": "low",
+        "finish_reason": "stop",
+        "request_id": "chatcmpl-6af189704cf384c7aa9b7ace"
+      }
+    },
+    {
+      "file": "probe-high.json",
+      "record": {
+        "ok": true,
+        "mode": "probe",
+        "question": "Reply with the single word READY.",
+        "answer": "READY",
+        "expected": "READY",
+        "correct": true,
+        "input_tokens": 93,
+        "output_tokens": 36,
+        "total_tokens": 129,
+        "reasoning_tokens": 25,
+        "latency_ms": 5733,
+        "model": "Kimi-K3.1",
+        "requested_reasoning_effort": "high",
+        "finish_reason": "stop",
+        "request_id": "chatcmpl-6af189937f433c60ae427941"
+      }
+    },
+    {
+      "file": "probe-none.json",
+      "record": {
+        "ok": true,
+        "mode": "probe",
+        "question": "Reply with the single word READY.",
+        "answer": "READY",
+        "expected": "READY",
+        "correct": true,
+        "input_tokens": 25,
+        "output_tokens": 8,
+        "total_tokens": 33,
+        "reasoning_tokens": 0,
+        "latency_ms": 7938,
+        "model": "Kimi-K3.1",
+        "requested_reasoning_effort": "none",
+        "finish_reason": "stop",
+        "request_id": "chatcmpl-6af189ee9e3b1066584aab6c",
+        "complete": true
+      }
+    }
+  ],
+  "caveats": [
+    "Three generated scenes use the identical prompt and a 12,000 completion-token cap. One sample per setting, not a benchmark or causal quality ranking.",
+    "reasoning_effort none, low, and high were accepted by the live API. Reasoning tokens are included in output_tokens, not additional tokens.",
+    "The service reports model Kimi-K3.1; management-plane deployment is MoonshotAI Kimi-K3.1-Pro version 2026-11-04. Do not hide this naming difference.",
+    "Some real calls returned an endpoint-not-found error; an early scene hit its token cap and another lacked a complete HTML document. Live runner has no retries or recorded fallback.",
+    "Current Nov 9 catalog labels GA; the supplied weekly draft said preview. No historical catalog snapshot establishes the lifecycle label by Nov 6 12:01 PST.",
+    "Catalog lists 1,048,576 context tokens; Learn describes 1,000,000 input tokens and 262,144 output tokens. Use 'roughly one million' in narration.",
+    "Long-context check is a bounded public changelog corpus, not a million-token capacity or attention benchmark.",
+    "Generated scene code is unedited and runs inside an opaque-origin, allow-scripts-only iframe with network, forms, and navigation blocked by CSP/sandbox.",
+    "The three.js runtime is pinned and vendored with its MIT license. Recorded scenes require WebGL but no model access or network dependency.",
+    "USD announcement prices are $2.30 input, $0.23 cached input, $11.50 output per million tokens. Actual agreement pricing can differ."
+  ],
+  "sources": [
+    {
+      "url": "https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/moonshot-ai%E2%80%99s-kimi-k3-1-pro-comes-to-microsoft-foundry/4570292",
+      "date": "2026-11-05",
+      "retrieved": "2026-11-09",
+      "quote": "It is an open-weight model built for agentic work, with text and image understanding and a context window of up to 1 million tokens.",
+      "note": "Announcement is on Microsoft Tech Community, not the Foundry devblog."
+    },
+    {
+      "url": "https://ai.azure.com/catalog/models/Kimi-K3.1-Pro",
+      "retrieved": "2026-11-09",
+      "quote": "Lifecycle Generally available (GA); Input type text, image; Context window 1048.576k; Token limits 262.144k output",
+      "note": "Current catalog, not an archived reporting-window snapshot."
+    },
+    {
+      "url": "https://learn.microsoft.com/azure/foundry/foundry-models/concepts/models-sold-directly-by-azure#moonshot-ai-models-sold-by-azure",
+      "retrieved": "2026-11-09",
+      "quote": "Input: text and image (1,000,000 tokens); Output: text (262,144 tokens); Tool calling: Yes"
+    },
+    {
+      "url": "https://learn.microsoft.com/azure/foundry/openai/concepts/model-retirement-schedule#foundry-models-sold-by-azure",
+      "retrieved": "2026-11-09",
+      "quote": "Kimi-K3.1-Pro | 2026-11-04 | GA | 2027-11-04"
+    },
+    {
+      "url": "https://learn.microsoft.com/azure/foundry/foundry-models/concepts/models-sold-directly-by-azure-region-availability",
+      "retrieved": "2026-11-09",
+      "note": "Consult current region guidance. Actual East US availability was verified by a successful deployment and calls; not an exhaustive region survey."
+    }
+  ]
+}

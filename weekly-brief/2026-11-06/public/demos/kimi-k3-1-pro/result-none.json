@@ -1,0 +1,14 @@
+{
+  "ok": false,
+  "mode": "scene",
+  "question": null,
+  "answer": null,
+  "expected": null,
+  "correct": null,
+  "input_tokens": null,
+  "output_tokens": null,
+  "latency_ms": null,
+  "model": "kimi-k3-1-pro",
+  "requested_reasoning_effort": "none",
+  "error": "Model did not return a complete HTML document."
+}

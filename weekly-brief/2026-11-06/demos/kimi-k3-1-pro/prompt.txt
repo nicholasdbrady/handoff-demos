@@ -1,0 +1,21 @@
+Build a complete, beautiful three.js kinetic sculpture for a developer livestream.
+Return ONLY a complete HTML document, no Markdown fences and no explanation.
+Use THREE from the provided classic script ./vendor/three.min.js (three.js 0.160.1).
+No other imports, dependencies, network calls, external assets, logos, people, or eval.
+
+The artwork: a small luminous cobalt core with three orbiting, tilted metallic rings,
+warm copper accents, and hundreds of tiny particles that travel in coherent orbital
+paths. It should feel like a physical museum sculpture, not a random particle cloud.
+Create depth through geometry, perspective, materials, and lighting. Use a dark navy
+background. Fill the available 16:9 viewport with a legible, balanced composition.
+Avoid huge white lighting hotspots. Use simple procedural geometry and bounded GPU work.
+
+Include working native Pause/Resume and Reset view buttons, a speed range slider,
+mouse or pointer drag to orbit the view, responsive resize, and a clear title.
+Respect prefers-reduced-motion by starting paused. Show an explicit readable error
+if WebGL is unavailable. Keep all text at least 16px, with strong contrast and visible
+keyboard focus. Use requestAnimationFrame, cap pixel ratio at 2, and no shadows or
+postprocessing. Make it run offline when served alongside the provided three.js file.
+Don't assume OrbitControls or any add-ons are available. Include all implementation
+inside this single document. Aim for a polished scene, not a technical wireframe.
+Keep the implementation concise: at most 250 lines and 18,000 characters of HTML.

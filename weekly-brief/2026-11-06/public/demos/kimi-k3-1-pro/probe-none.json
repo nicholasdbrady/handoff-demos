@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "mode": "probe",
+  "question": "Reply with the single word READY.",
+  "answer": "READY",
+  "expected": "READY",
+  "correct": true,
+  "input_tokens": 25,
+  "output_tokens": 8,
+  "total_tokens": 33,
+  "reasoning_tokens": 0,
+  "latency_ms": 7938,
+  "model": "Kimi-K3.1",
+  "requested_reasoning_effort": "none",
+  "finish_reason": "stop",
+  "request_id": "chatcmpl-6af189ee9e3b1066584aab6c",
+  "complete": true
+}

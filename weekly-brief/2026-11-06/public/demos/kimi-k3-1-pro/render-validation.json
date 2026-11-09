@@ -1,0 +1,16 @@
+{
+  "capture_date": "2026-11-09",
+  "engine": "Playwright MCP bridge",
+  "generated_code_edited": false,
+  "desktop_viewports": ["1280x900", "1280x720"],
+  "mobile_viewport": "390x844",
+  "mobile_document_width": 390,
+  "mobile_scroll_width": 390,
+  "page_errors_during_checks": [],
+  "scenes": [
+    {"effort": "none", "canvas_visible": true, "animated": true, "pause_toggles_to_resume": true, "reset_click_succeeds": true, "speed_slider_value_after_input": "1.5", "sandbox": "allow-scripts"},
+    {"effort": "low", "canvas_visible": true, "animated": true, "pause_toggles_to_resume": true, "reset_click_succeeds": true, "speed_slider_value_after_input": "1.5", "sandbox": "allow-scripts"},
+    {"effort": "high", "canvas_visible": true, "animated": true, "pause_toggles_to_resume": true, "reset_click_succeeds": true, "speed_slider_value_after_input": "1.5", "sandbox": "allow-scripts"}
+  ],
+  "note": "Animation was checked by different canvas screenshots over 350 ms; controls were exercised in each opaque-origin sandbox. These are rendering checks, not aesthetic scores. Initial browser console included a favicon error and three.js deprecation warnings."
+}

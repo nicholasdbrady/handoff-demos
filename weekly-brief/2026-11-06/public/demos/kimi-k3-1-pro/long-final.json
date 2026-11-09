@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "mode": "long",
+  "question": "In SOURCE sdk/ai/azure-ai-projects/CHANGELOG.md, what is the first level-two release heading? Return it verbatim.",
+  "answer": "## 2.10.0 (2026-10-30)",
+  "expected": "2.10.0 (2026-10-30)",
+  "correct": true,
+  "input_tokens": 9240,
+  "output_tokens": 22,
+  "total_tokens": 9262,
+  "reasoning_tokens": 0,
+  "latency_ms": 5492,
+  "model": "Kimi-K3.1",
+  "requested_reasoning_effort": "none",
+  "finish_reason": "stop",
+  "request_id": "chatcmpl-6af18bbba3b60834a67a6055",
+  "complete": true
+}

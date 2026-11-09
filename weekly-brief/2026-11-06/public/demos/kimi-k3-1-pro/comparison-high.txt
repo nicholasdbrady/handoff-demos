@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cobalt Orbit — Kinetic Sculpture</title>
+<style>
+  :root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  *{box-sizing:border-box}
+  html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#050b17;color:#eef5ff}
+  body{position:relative}
+  #stage,canvas{position:absolute;inset:0;width:100%;height:100%}
+  canvas{display:block;cursor:grab;touch-action:none;outline-offset:-4px}
+  canvas.dragging{cursor:grabbing}
+  header{position:absolute;z-index:2;top:28px;left:32px;pointer-events:none;text-shadow:0 2px 18px #020610}
+  .kicker{margin:0 0 7px;color:#efba8e;font-size:16px;font-weight:650;letter-spacing:.18em;text-transform:uppercase}
+  h1{margin:0;font-size:clamp(28px,3vw,46px);font-weight:520;letter-spacing:-.035em;line-height:1.05}
+  .subtitle{margin:10px 0 0;color:#bfd0e6;font-size:16px;letter-spacing:.02em}
+  .hint{position:absolute;z-index:2;right:26px;top:28px;padding:9px 13px;border:1px solid #2b405d;border-radius:999px;background:#07111ecf;color:#c4d5e9;font-size:16px;pointer-events:none}
+  .controls{position:absolute;z-index:3;left:50%;bottom:24px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;width:max-content;max-width:calc(100% - 32px);padding:12px;border:1px solid #344d6c;border-radius:16px;background:#081321ed;box-shadow:0 12px 40px #0007;backdrop-filter:blur(12px)}
+  button{min-height:46px;padding:0 18px;border:1px solid #476181;border-radius:10px;background:#12243a;color:#f2f7ff;font:inherit;font-size:16px;font-weight:650;cursor:pointer}
+  button:hover{background:#1b324f;border-color:#7994b6}
+  #toggle{background:#b9784f;border-color:#dcaa83;color:#09101c}
+  #toggle:hover{background:#d09264}
+  :focus-visible{outline:3px solid #ffd09f;outline-offset:3px}
+  .speed{width:210px;padding:0 7px}
+  .speed label{display:flex;justify-content:space-between;gap:14px;margin-bottom:5px;color:#dbe7f5;font-size:16px}
+  output{color:#efba8e;font-variant-numeric:tabular-nums}
+  input[type=range]{display:block;width:100%;height:24px;margin:0;accent-color:#e0a477;cursor:pointer}
+  #error{position:absolute;z-index:10;inset:0;display:grid;place-content:center;padding:32px;background:#050b17;text-align:center}
+  #error[hidden]{display:none}
+  #error h2{margin:0 0 12px;color:#ffd0ae;font-size:28px}
+  #error p{max-width:560px;margin:0;color:#e3ecf7;font-size:18px;line-height:1.6}
+  @media(max-width:700px){
+    header{top:18px;left:18px}.hint{display:none}.subtitle{max-width:260px}
+    .controls{bottom:12px;flex-wrap:wrap;justify-content:center;gap:9px;width:calc(100% - 24px);padding:10px}
+    .speed{order:3;flex:1 1 100%;width:auto;max-width:380px}.speed label{margin-bottom:0}
+    button{flex:1;padding:0 12px}
+  }
+</style>
+</head>
+<body>
+<main id="stage" aria-label="Interactive three-dimensional kinetic sculpture"></main>
+<header>
+  <p class="kicker">Kinetic study · No. 03</p>
+  <h1>Cobalt Orbit</h1>
+  <p class="subtitle">A luminous heart, held in motion.</p>
+</header>
+<div class="hint">Drag to orbit · Scroll to zoom</div>
+<section class="controls" aria-label="Sculpture controls">
+  <button id="toggle" type="button" aria-pressed="false">Pause</button>
+  <div class="speed">
+    <label for="speed">Motion speed <output id="speedValue" for="speed">1.0×</output></label>
+    <input id="speed" type="range" min="0" max="2" step="0.1" value="1" aria-label="Motion speed">
+  </div>
+  <button id="reset" type="button">Reset view</button>
+</section>
+<div id="error" role="alert" hidden>
+  <h2>WebGL is unavailable</h2>
+  <p id="errorText">This sculpture needs WebGL. Enable hardware acceleration or open this page in a WebGL-capable browser.</p>
+</div>
+<script src="./vendor/three.min.js"></script>
+<script>
+(() => {
+  'use strict';
+  const stage=document.getElementById('stage'), toggle=document.getElementById('toggle');
+  const speedInput=document.getElementById('speed'), speedValue=document.getElementById('speedValue');
+  const errorBox=document.getElementById('error');
+  let failed=false;
+  function fail(message){
+    failed=true; errorBox.hidden=false;
+    if(message) document.getElementById('errorText').textContent=message;
+    document.querySelectorAll('button,input').forEach(el=>el.disabled=true);
+    document.querySelector('.controls').style.display='none';
+  }
+  if(!window.THREE){fail('The local three.js library could not be loaded, and WebGL cannot be started. Check that ./vendor/three.min.js is available.');return;}
+  let renderer;
+  try{renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});}
+  catch(e){fail();return;}
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  renderer.outputColorSpace=THREE.SRGBColorSpace;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=1.02;
+  renderer.setClearColor(0x050b17);
+  const canvas=renderer.domElement;
+  canvas.tabIndex=0;
+  canvas.setAttribute('aria-label','Cobalt Orbit. Drag or use arrow keys to orbit, mouse wheel or plus and minus to zoom, and Home to reset the view.');
+  stage.appendChild(canvas);
+  canvas.addEventListener('webglcontextlost',e=>{e.preventDefault();fail('The WebGL context was lost. Reload this page to restore the sculpture.');});
+
+  const scene=new THREE.Scene();
+  scene.background=new THREE.Color(0x050b17);
+  scene.fog=new THREE.Fog(0x050b17,11,25);
+  const camera=new THREE.PerspectiveCamera(42,1,.1,60);
+  const target=new THREE.Vector3(0,-.12,0);
+  scene.add(new THREE.HemisphereLight(0x91b5ed,0x111525,1.15));
+  const key=new THREE.DirectionalLight(0xdceaff,2.8); key.position.set(4,7,6); scene.add(key);
+  const warm=new THREE.DirectionalLight(0xffb782,2.1); warm.position.set(-5,2,3); scene.add(warm);
+  const rim=new THREE.DirectionalLight(0x477cff,2.4); rim.position.set(2,1,-6); scene.add(rim);
+  const coreLight=new THREE.PointLight(0x1755ff,10,6,2); scene.add(coreLight);
+
+  const sculpture=new THREE.Group(); scene.add(sculpture);
+  const steel=new THREE.MeshStandardMaterial({color:0x91a8bd,metalness:.82,roughness:.28});
+  const copper=new THREE.MeshStandardMaterial({color:0xc27c50,metalness:.78,roughness:.3});
+  const coreMat=new THREE.MeshStandardMaterial({color:0x074bd8,emissive:0x073dff,emissiveIntensity:2.25,metalness:.3,roughness:.2});
+  const core=new THREE.Mesh(new THREE.SphereGeometry(.56,48,32),coreMat); sculpture.add(core);
+  const halo=new THREE.Mesh(new THREE.SphereGeometry(.7,32,24),new THREE.MeshBasicMaterial({color:0x286dff,transparent:true,opacity:.075,depthWrite:false,side:THREE.BackSide}));
+  sculpture.add(halo);
+
+  const specs=[
+    {r:1.7,tube:.037,rot:[.52,.2,.25],spin:.16,rate:.38},
+    {r:2.3,tube:.031,rot:[1.22,-.35,-.42],spin:-.115,rate:-.27},
+    {r:2.88,tube:.027,rot:[.28,1.02,.18],spin:.075,rate:.19}
+  ];
+  const spinners=[],frames=[],beadGeometry=new THREE.SphereGeometry(.075,12,8),dummy=new THREE.Object3D();
+  specs.forEach((s,i)=>{
+    const pivot=new THREE.Group(); pivot.rotation.set(...s.rot); sculpture.add(pivot);
+    const spinner=new THREE.Group(); pivot.add(spinner); spinners.push(spinner);
+    frames.push(new THREE.Matrix4().makeRotationFromEuler(new THREE.Euler(...s.rot)));
+    const mat=i===1?copper:steel;
+    spinner.add(new THREE.Mesh(new THREE.TorusGeometry(s.r,s.tube,10,192),mat));
+    const path=[];
+    for(let j=0;j<192;j++){const a=j/192*Math.PI*2;path.push(new THREE.Vector3(Math.cos(a)*(s.r+.105),Math.sin(a)*(s.r+.105),0));}
+    const line=new THREE.LineLoop(new THREE.BufferGeometry().setFromPoints(path),new THREE.LineBasicMaterial({color:i===1?0xc58257:0x517fb3,transparent:true,opacity:.22}));
+    spinner.add(line);
+    const beads=new THREE.InstancedMesh(beadGeometry,copper,6);
+    for(let j=0;j<6;j++){
+      const a=j/6*Math.PI*2+i*.37;
+      dummy.position.set(Math.cos(a)*s.r,Math.sin(a)*s.r,0);
+      dummy.scale.setScalar(j%3===0?1.25:.7); dummy.updateMatrix(); beads.setMatrixAt(j,dummy.matrix);
+    }
+    spinner.add(beads);
+  });
+
+  const floor=new THREE.Mesh(new THREE.CircleGeometry(8,96),new THREE.MeshStandardMaterial({color:0x091423,metalness:.15,roughness:.92}));
+  floor.rotation.x=-Math.PI/2; floor.position.y=-3.4; scene.add(floor);
+  const plinth=new THREE.Mesh(new THREE.CylinderGeometry(3.48,3.68,.32,96),new THREE.MeshStandardMaterial({color:0x182638,metalness:.55,roughness:.52}));
+  plinth.position.y=-3.22; scene.add(plinth);
+  const trim=new THREE.Mesh(new THREE.TorusGeometry(3.49,.018,8,128),copper);
+  trim.rotation.x=Math.PI/2; trim.position.y=-3.07; scene.add(trim);
+  const stem=new THREE.Mesh(new THREE.CylinderGeometry(.022,.04,2.5,12),copper); stem.position.y=-1.8; scene.add(stem);
+  const socket=new THREE.Mesh(new THREE.CylinderGeometry(.17,.22,.14,32),copper); socket.position.y=-3; scene.add(socket);
+
+  const dotCanvas=document.createElement('canvas'); dotCanvas.width=dotCanvas.height=32;
+  const ctx=dotCanvas.getContext('2d'),gradient=ctx.createRadialGradient(16,16,0,16,16,16);
+  gradient.addColorStop(0,'rgba(255,255,255,1)'); gradient.addColorStop(.25,'rgba(255,255,255,.9)'); gradient.addColorStop(1,'rgba(255,255,255,0)');
+  ctx.fillStyle=gradient; ctx.fillRect(0,0,32,32);
+  const COUNT=840,positions=new Float32Array(COUNT*3),colors=new Float32Array(COUNT*3);
+  const phases=new Float32Array(COUNT),radii=new Float32Array(COUNT),depths=new Float32Array(COUNT);
+  let seed=4817; function random(){seed=(seed*16807)%2147483647;return(seed-1)/2147483646;}
+  const blue=new THREE.Color(0x74a7ff),amber=new THREE.Color(0xf0a36c),v=new THREE.Vector3();
+  for(let i=0;i<COUNT;i++){
+    const band=i%3; phases[i]=random()*Math.PI*2;
+    radii[i]=specs[band].r+(random()-.5)*.19; depths[i]=(random()-.5)*.07;
+    const c=(band===1?amber:blue).clone().multiplyScalar(.65+random()*.35);
+    colors.set([c.r,c.g,c.b],i*3);
+  }
+  const particleGeometry=new THREE.BufferGeometry();
+  particleGeometry.setAttribute('position',new THREE.BufferAttribute(positions,3).setUsage(THREE.DynamicDrawUsage));
+  particleGeometry.setAttribute('color',new THREE.BufferAttribute(colors,3));
+  const particles=new THREE.Points(particleGeometry,new THREE.PointsMaterial({size:.052,map:new THREE.CanvasTexture(dotCanvas),vertexColors:true,transparent:true,opacity:.82,depthWrite:false,blending:THREE.AdditiveBlending}));
+  sculpture.add(particles);
+
+  let theta=.55,phi=1.18,dist=10.8,fit=1,dragging=false,lastX=0,lastY=0;
+  let paused=window.matchMedia('(prefers-reduced-motion: reduce)').matches,speed=1,time=.8;
+  function updateCamera(){
+    camera.position.set(dist*Math.sin(phi)*Math.sin(theta),dist*Math.cos(phi),dist*Math.sin(phi)*Math.cos(theta)).add(target);
+    camera.lookAt(target);
+  }
+  function resetView(){theta=.55;phi=1.18;dist=10.8*fit;updateCamera();}
+  function resize(){
+    const oldFit=fit,w=innerWidth,h=innerHeight;
+    camera.aspect=w/h; fit=Math.max(1,1/camera.aspect); dist=dist/oldFit*fit;
+    camera.updateProjectionMatrix(); renderer.setSize(w,h,false); updateCamera();
+  }
+  function syncPause(){toggle.textContent=paused?'Resume':'Pause';toggle.setAttribute('aria-pressed',String(paused));}
+  toggle.addEventListener('click',()=>{paused=!paused;syncPause();});
+  document.getElementById('reset').addEventListener('click',resetView);
+  speedInput.addEventListener('input',()=>{speed=Number(speedInput.value);speedValue.value=speed.toFixed(1)+'×';speedInput.setAttribute('aria-valuetext',speed.toFixed(1)+' times');});
+  canvas.addEventListener('pointerdown',e=>{dragging=true;lastX=e.clientX;lastY=e.clientY;canvas.setPointerCapture(e.pointerId);canvas.classList.add('dragging');canvas.focus({preventScroll:true});});
+  canvas.addEventListener('pointermove',e=>{
+    if(!dragging)return;
+    theta-=(e.clientX-lastX)*.005; phi=Math.max(.28,Math.min(2.72,phi-(e.clientY-lastY)*.005));
+    lastX=e.clientX;lastY=e.clientY;updateCamera();
+  });
+  function endDrag(){dragging=false;canvas.classList.remove('dragging');}
+  canvas.addEventListener('pointerup',endDrag); canvas.addEventListener('pointercancel',endDrag);
+  canvas.addEventListener('wheel',e=>{e.preventDefault();dist=Math.max(7*fit,Math.min(16*fit,dist*Math.exp(e.deltaY*.001)));updateCamera();},{passive:false});
+  canvas.addEventListener('keydown',e=>{
+    let used=true;
+    if(e.key==='ArrowLeft')theta-=.09;else if(e.key==='ArrowRight')theta+=.09;
+    else if(e.key==='ArrowUp')phi=Math.max(.28,phi-.08);else if(e.key==='ArrowDown')phi=Math.min(2.72,phi+.08);
+    else if(e.key==='+'||e.key==='=')dist=Math.max(7*fit,dist*.93);else if(e.key==='-')dist=Math.min(16*fit,dist*1.07);
+    else if(e.key==='Home')resetView();else used=false;
+    if(used){e.preventDefault();updateCamera();}
+  });
+  addEventListener('resize',resize); resize(); resetView(); syncPause();
+
+  let previous=performance.now();
+  function frame(now){
+    if(failed)return;
+    requestAnimationFrame(frame);
+    const dt=Math.min((now-previous)/1000,.04); previous=now;
+    if(!paused)time+=dt*speed;
+    sculpture.rotation.y=.08+time*.035;
+    spinners.forEach((s,i)=>s.rotation.z=time*specs[i].spin);
+    core.scale.setScalar(1+Math.sin(time*1.35)*.025);
+    halo.material.opacity=.065+Math.sin(time*1.35)*.012;
+    coreLight.intensity=9+Math.sin(time*1.35)*.7;
+    for(let i=0;i<COUNT;i++){
+      const band=i%3,a=phases[i]+time*specs[band].rate,r=radii[i];
+      v.set(Math.cos(a)*r,Math.sin(a)*r,depths[i]).applyMatrix4(frames[band]);
+      positions[i*3]=v.x;positions[i*3+1]=v.y;positions[i*3+2]=v.z;
+    }
+    particleGeometry.attributes.position.needsUpdate=true;
+    renderer.render(scene,camera);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

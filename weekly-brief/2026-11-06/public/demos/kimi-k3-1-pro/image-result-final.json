@@ -1,0 +1,21 @@
+{
+  "ok": true,
+  "mode": "image",
+  "question": "Read the supplied chart. Which orbit has the most particles, and how many? Return only JSON with keys \"orbit\" and \"particles\".",
+  "answer": "{\"orbit\": \"Copper\", \"particles\": 240}",
+  "expected": {
+    "orbit": "copper",
+    "particles": 240
+  },
+  "correct": true,
+  "input_tokens": 1130,
+  "output_tokens": 20,
+  "total_tokens": 1150,
+  "reasoning_tokens": 0,
+  "latency_ms": 4646,
+  "model": "Kimi-K3.1",
+  "requested_reasoning_effort": "none",
+  "finish_reason": "stop",
+  "request_id": "chatcmpl-6af18b3ebeef6f35cf2f649e",
+  "complete": true
+}

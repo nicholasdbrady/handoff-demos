@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Isolated Kimi scene</title>
+  <style>
+    html,body{margin:0;height:100%;background:#0b1026;color:#ecf1ff;font-size:18px;line-height:1.5;font-family:"IBM Plex Sans","Segoe UI",sans-serif}
+    iframe{display:block;width:100%;height:100%;border:0}
+    #error{padding:32px}
+  </style>
+</head>
+<body>
+  <p id="error" role="status">Loading recorded model output...</p>
+  <script>
+    const allowed = new Set(['none-final.txt','comparison-low.txt','comparison-high.txt']);
+    async function render() {
+      const name = new URLSearchParams(location.search).get('scene');
+      if (!allowed.has(name)) throw new Error('Choose a recorded scene from the comparison.');
+      const responses = await Promise.all([fetch(name), fetch('./vendor/three.min.js')]);
+      if (responses.some(r => !r.ok)) throw new Error('Scene or local three.js runtime is missing.');
+      const [source, runtime] = await Promise.all(responses.map(r => r.text()));
+      const documentTree = new DOMParser().parseFromString(source, 'text/html');
+      const external = [...documentTree.querySelectorAll('script[src]')];
+      if (external.length !== 1 || external[0].getAttribute('src') !== './vendor/three.min.js') {
+        throw new Error('Generated output has an unexpected script dependency.');
+      }
+      if (documentTree.querySelector('iframe,object,embed,base,form,link')) {
+        throw new Error('Generated output contains an unsupported active element.');
+      }
+      documentTree.querySelectorAll('meta[http-equiv]').forEach(el => el.remove());
+      const policy = documentTree.createElement('meta');
+      policy.httpEquiv = 'Content-Security-Policy';
+      policy.content = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'; base-uri 'none'; form-action 'none'";
+      documentTree.head.prepend(policy);
+      external[0].removeAttribute('src');
+      external[0].textContent = runtime.replace(/<\/script/gi, '<\\/script');
+      const frame = document.createElement('iframe');
+      frame.title = 'Recorded Kimi-generated kinetic sculpture';
+      frame.setAttribute('sandbox', 'allow-scripts');
+      frame.srcdoc = '<!doctype html>' + documentTree.documentElement.outerHTML;
+      document.getElementById('error').replaceWith(frame);
+    }
+    render().catch(error => {
+      document.getElementById('error').textContent = 'Cannot render: ' + error.message;
+      document.getElementById('error').setAttribute('role', 'alert');
+    });
+  </script>
+</body>
+</html>

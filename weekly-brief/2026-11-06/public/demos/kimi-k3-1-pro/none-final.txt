@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Cobalt Orbital — Kinetic Sculpture</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+    body {
+      background: #070d1d;
+      color: #eaf2ff;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input { font: inherit; }
+    button:focus-visible, input:focus-visible {
+      outline: 3px solid #8ed0ff;
+      outline-offset: 4px;
+    }
+    canvas { display: block; width: 100%; height: 100%; touch-action: none; cursor: grab; }
+    canvas.dragging { cursor: grabbing; }
+    .title {
+      position: fixed;
+      z-index: 2;
+      top: 22px;
+      left: 26px;
+      pointer-events: none;
+      text-shadow: 0 2px 14px #070d1d;
+    }
+    h1 { margin: 0; font-size: 22px; font-weight: 650; letter-spacing: .18em; text-transform: uppercase; }
+    .subtitle { margin-top: 7px; color: #adc1df; font-size: 14px; letter-spacing: .08em; line-height: 1.5; }
+    .controls {
+      position: fixed;
+      z-index: 2;
+      bottom: 22px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      width: max-content;
+      max-width: calc(100% - 24px);
+      padding: 12px;
+      border: 1px solid #3b5277;
+      border-radius: 14px;
+      background: rgba(10, 19, 38, .94);
+      box-shadow: 0 10px 35px #0006;
+    }
+    button {
+      min-height: 44px;
+      padding: 8px 15px;
+      border: 1px solid #56709a;
+      border-radius: 8px;
+      background: #17253e;
+      color: #eaf2ff;
+      cursor: pointer;
+    }
+    button:hover { background: #223654; }
+    .speed { display: flex; align-items: center; gap: 9px; padding: 0 3px; }
+    .speed label { font-size: 14px; color: #cbd9ee; }
+    input[type=range] { width: 130px; min-height: 44px; accent-color: #78b9ff; cursor: pointer; }
+    output { min-width: 42px; font-size: 14px; font-variant-numeric: tabular-nums; color: #cbd9ee; }
+    .hint {
+      position: fixed;
+      z-index: 2;
+      right: 22px;
+      bottom: 24px;
+      color: #97afd0;
+      font-size: 14px;
+      pointer-events: none;
+    }
+    #error {
+      display: none;
+      position: fixed;
+      z-index: 5;
+      inset: 0;
+      place-items: center;
+      padding: 30px;
+      background: #070d1d;
+      text-align: center;
+      font-size: 18px;
+      line-height: 1.6;
+    }
+    @media (max-width: 760px) {
+      .title { top: 16px; left: 16px; }
+      h1 { font-size: 18px; }
+      .subtitle, .hint { display: none; }
+      .controls { bottom: 12px; gap: 8px; padding: 8px; }
+      button { padding: 8px 10px; }
+      input[type=range] { width: 90px; }
+      .speed label { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="title">
+    <h1>Cobalt Orbital</h1>
+    <div class="subtitle">Kinetic study · copper, cobalt &amp; light</div>
+  </header>
+  <div class="controls" role="group" aria-label="Sculpture controls">
+    <button id="toggle" type="button">Pause</button>
+    <button id="reset" type="button">Reset view</button>
+    <div class="speed">
+      <label for="speed">Speed</label>
+      <input id="speed" type="range" min="0.15" max="2" step="0.05" value="1" aria-label="Animation speed">
+      <output id="speedValue" for="speed">1.00×</output>
+    </div>
+  </div>
+  <div class="hint">Drag to orbit · Scroll to zoom</div>
+  <div id="error" role="alert"></div>
+
+  <script src="./vendor/three.min.js"></script>
+  <script>
+  (() => {
+    'use strict';
+    const error = document.getElementById('error');
+    if (!window.THREE) {
+      error.style.display = 'grid';
+      error.textContent = 'The 3D engine could not load. Please serve this page alongside vendor/three.min.js.';
+      return;
+    }
+    let renderer;
+    try {
+      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    } catch (e) {
+      error.style.display = 'grid';
+      error.textContent = 'WebGL is unavailable in this browser. Please enable hardware acceleration or use a WebGL-capable browser.';
+      return;
+    }
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setClearColor(0x070d1d);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = .9;
+    renderer.domElement.setAttribute('aria-label', 'Interactive luminous cobalt kinetic sculpture. Drag to orbit the view.');
+    document.body.prepend(renderer.domElement);
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(43, innerWidth / innerHeight, .1, 100);
+    const home = { theta: .55, phi: 1.18, radius: 12.8 };
+    let theta = home.theta, phi = home.phi, radius = home.radius;
+    let paused = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    let speed = 1, time = 0, last = performance.now();
+
+    scene.add(new THREE.HemisphereLight(0x89a8df, 0x170e12, 1.5));
+    const key = new THREE.DirectionalLight(0xffd1a0, 3.1);
+    key.position.set(5, 7, 6);
+    scene.add(key);
+    const fill = new THREE.DirectionalLight(0x618dff, 2.2);
+    fill.position.set(-6, -1, 3);
+    scene.add(fill);
+    const rim = new THREE.PointLight(0xff884d, 35, 18, 2);
+    rim.position.set(-3, 2, -4);
+    scene.add(rim);
+    const coreLight = new THREE.PointLight(0x165dff, 22, 9, 2);
+    scene.add(coreLight);
+
+    const sculpture = new THREE.Group();
+    sculpture.position.y = -.15;
+    scene.add(sculpture);
+
+    // Layered sphere glow: no postprocessing or bloom passes.
+    function glowMaterial(color, opacity) {
+      return new THREE.ShaderMaterial({
+        transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+        uniforms: { tint: { value: new THREE.Color(color) }, alpha: { value: opacity } },
+        vertexShader: 'varying vec3 vN; varying vec3 vV; void main(){ vec4 p=modelViewMatrix*vec4(position,1.); vN=normalize(normalMatrix*normal); vV=normalize(-p.xyz); gl_Position=projectionMatrix*p; }',
+        fragmentShader: 'uniform vec3 tint; uniform float alpha; varying vec3 vN; varying vec3 vV; void main(){ float a=pow(1.-abs(dot(vN,vV)),2.2); gl_FragColor=vec4(tint,a*alpha); }'
+      });
+    }
+    const core = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(.47, 4),
+      new THREE.MeshStandardMaterial({ color: 0x073bba, emissive: 0x074bff, emissiveIntensity: 1.65, metalness: .35, roughness: .2 })
+    );
+    sculpture.add(core);
+    const glow1 = new THREE.Mesh(new THREE.SphereGeometry(.72, 24, 16), glowMaterial(0x126cff, .62));
+    const glow2 = new THREE.Mesh(new THREE.SphereGeometry(1.02, 24, 16), glowMaterial(0x064ddd, .22));
+    sculpture.add(glow1, glow2);
+
+    // A museum plinth and fine concentric inlay ground the floating mechanism.
+    const plinth = new THREE.Mesh(
+      new THREE.CylinderGeometry(2.55, 2.8, .24, 96),
+      new THREE.MeshStandardMaterial({ color: 0x111a2a, metalness: .72, roughness: .38 })
+    );
+    plinth.position.y = -3.1;
+    scene.add(plinth);
+    const inlay = new THREE.Mesh(
+      new THREE.TorusGeometry(2.25, .018, 6, 128),
+      new THREE.MeshBasicMaterial({ color: 0xa46037 })
+    );
+    inlay.rotation.x = Math.PI / 2;
+    inlay.position.y = -2.969;
+    scene.add(inlay);
+
+    const steel = new THREE.MeshStandardMaterial({ color: 0x66788d, metalness: .96, roughness: .24 });
+    const copper = new THREE.MeshStandardMaterial({ color: 0xc37543, metalness: .9, roughness: .25 });
+    const ringData = [
+      { radius: 2.0, tube: .072, tilt: new THREE.Euler(.82, .2, .12), rate: .22 },
+      { radius: 2.65, tube: .085, tilt: new THREE.Euler(-.55, .65, 1.05), rate: -.15 },
+      { radius: 3.32, tube: .067, tilt: new THREE.Euler(.4, -.3, -.72), rate: .11 }
+    ];
+    const rings = [];
+    const dummy = new THREE.Object3D();
+    const particlesPerRing = 150;
+    const particleCount = particlesPerRing * ringData.length;
+    const particleGeo = new THREE.SphereGeometry(.025, 6, 4);
+    const particleMat = new THREE.MeshBasicMaterial({ color: 0xa9ceff });
+    const particles = new THREE.InstancedMesh(particleGeo, particleMat, particleCount);
+    particles.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    const copperParticles = new THREE.InstancedMesh(particleGeo, new THREE.MeshBasicMaterial({ color: 0xffa467 }), 90);
+    copperParticles.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+    scene.add(particles, copperParticles);
+    const paths = [];
+
+    ringData.forEach((d, i) => {
+      const group = new THREE.Group();
+      group.rotation.copy(d.tilt);
+      sculpture.add(group);
+      const mesh = new THREE.Mesh(new THREE.TorusGeometry(d.radius, d.tube, 12, 160), i === 1 ? copper : steel);
+      group.add(mesh);
+      // Copper collars are real geometry attached to each orbital ring.
+      for (let j = 0; j < 6; j++) {
+        const a = j * Math.PI / 3;
+        const collar = new THREE.Mesh(new THREE.CylinderGeometry(d.tube * 1.65, d.tube * 1.65, .22, 10), copper);
+        collar.position.set(Math.cos(a) * d.radius, Math.sin(a) * d.radius, 0);
+        collar.rotation.z = a;
+        group.add(collar);
+      }
+      const normal = new THREE.Vector3(0, 0, 1).applyEuler(d.tilt).normalize();
+      const u = new THREE.Vector3(1, 0, 0).applyEuler(d.tilt);
+      const v = new THREE.Vector3(0, 1, 0).applyEuler(d.tilt);
+      paths.push({ u, v, normal, radius: d.radius + .15, rate: d.rate, group });
+      rings.push({ mesh, group, base: d.tilt.clone(), rate: d.rate });
+    });
+
+    const anchors = Array.from({ length: particleCount }, (_, i) => ({
+      a: i % particlesPerRing / particlesPerRing * Math.PI * 2 + Math.sin(i * 12.73) * .18,
+      lane: Math.sin(i * 4.17) * .085,
+      scale: .65 + (Math.sin(i * 8.9) * .5 + .5) * 1.3
+    }));
+    const copperAnchors = Array.from({ length: 90 }, (_, i) => ({
+      a: i / 90 * Math.PI * 2,
+      lane: Math.sin(i * 7.31) * .13,
+      scale: .7 + (Math.sin(i * 5.7) * .5 + .5)
+    }));
+    const p = new THREE.Vector3();
+
+    function placeInstances(mesh, list, ringIndex, offset, t) {
+      const path = paths[ringIndex];
+      list.forEach((d, i) => {
+        const a = d.a + t * (.34 + ringIndex * .07) + offset;
+        const r = path.radius + d.lane;
+        p.copy(path.u).multiplyScalar(Math.cos(a) * r);
+        p.addScaledVector(path.v, Math.sin(a) * r);
+        p.addScaledVector(path.normal, Math.sin(a * 3 + ringIndex) * .055);
+        p.y -= .15;
+        dummy.position.copy(p);
+        dummy.scale.setScalar(d.scale);
+        dummy.updateMatrix();
+        mesh.setMatrixAt(i, dummy.matrix);
+      });
+      mesh.instanceMatrix.needsUpdate = true;
+    }
+
+    function updateCamera() {
+      camera.position.set(
+        radius * Math.sin(phi) * Math.sin(theta),
+        radius * Math.cos(phi),
+        radius * Math.sin(phi) * Math.cos(theta)
+      );
+      camera.lookAt(0, -.35, 0);
+    }
+    updateCamera();
+
+    const toggle = document.getElementById('toggle');
+    const slider = document.getElementById('speed');
+    const output = document.getElementById('speedValue');
+    function syncPause() { toggle.textContent = paused ? 'Resume' : 'Pause'; }
+    syncPause();
+    toggle.addEventListener('click', () => { paused = !paused; syncPause(); });
+    slider.addEventListener('input', () => {
+      speed = Number(slider.value);
+      output.value = speed.toFixed(2) + '×';
+    });
+    document.getElementById('reset').addEventListener('click', () => {
+      theta = home.theta; phi = home.phi; radius = home.radius; updateCamera();
+    });
+
+    let dragging = false, lastX = 0, lastY = 0;
+    const canvas = renderer.domElement;
+    canvas.addEventListener('pointerdown', e => {
+      dragging = true; lastX = e.clientX; lastY = e.clientY;
+      canvas.classList.add('dragging'); canvas.setPointerCapture(e.pointerId);
+    });
+    canvas.addEventListener('pointermove', e => {
+      if (!dragging) return;
+      theta -= (e.clientX - lastX) * .006;
+      phi = Math.max(.22, Math.min(Math.PI - .22, phi - (e.clientY - lastY) * .006));
+      lastX = e.clientX; lastY = e.clientY; updateCamera();
+    });
+    function endDrag() { dragging = false; canvas.classList.remove('dragging'); }
+    canvas.addEventListener('pointerup', endDrag);
+    canvas.addEventListener('pointercancel', endDrag);
+    canvas.addEventListener('wheel', e => {
+      e.preventDefault();
+      radius = Math.max(7.5, Math.min(22, radius * Math.exp(e.deltaY * .001)));
+      updateCamera();
+    }, { passive: false });
+
+    addEventListener('resize', () => {
+      camera.aspect = innerWidth / innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      renderer.setSize(innerWidth, innerHeight);
+    });
+    matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', e => {
+      if (e.matches) { paused = true; syncPause(); }
+    });
+
+    function frame(now) {
+      requestAnimationFrame(frame);
+      const dt = Math.min((now - last) / 1000, .05);
+      last = now;
+      if (paused) return;
+      time += dt * speed;
+      rings.forEach((r, i) => {
+        r.group.rotation.z = r.base.z + Math.sin(time * .22 + i * 2) * .12;
+        r.group.rotation.y = r.base.y + time * r.rate * .24;
+      });
+      // Recalculate transformed path bases after the rings precess.
+      paths.forEach((path, i) => {
+        const e = rings[i].group.rotation;
+        path.u.set(1, 0, 0).applyEuler(e);
+        path.v.set(0, 1, 0).applyEuler(e);
+        path.normal.set(0, 0, 1).applyEuler(e).normalize();
+      });
+      const pulse = 1 + Math.sin(time * 1.6) * .025;
+      core.scale.setScalar(pulse);
+      glow1.scale.setScalar(1 + Math.sin(time * 1.2) * .06);
+      coreLight.intensity = 20 + Math.sin(time * 1.6) * 3;
+      placeInstances(particles, anchors, 0, 0, time);
+      // Divide the blue instances among all three orbital paths.
+      anchors.forEach((d, i) => {
+        const ri = i % 3, path = paths[ri];
+        const a = d.a + time * (.34 + ri * .07);
+        const r = path.radius + d.lane;
+        p.copy(path.u).multiplyScalar(Math.cos(a) * r).addScaledVector(path.v, Math.sin(a) * r);
+        p.addScaledVector(path.normal, Math.sin(a * 3 + ri) * .055); p.y -= .15;
+        dummy.position.copy(p); dummy.scale.setScalar(d.scale); dummy.updateMatrix();
+        particles.setMatrixAt(i, dummy.matrix);
+      });
+      particles.instanceMatrix.needsUpdate = true;
+      placeInstances(copperParticles, copperAnchors, 1, .4, -time * .65);
+      renderer.render(scene, camera);
+    }
+    // Compose a complete first frame even when reduced motion starts paused.
+    rings.forEach((r, i) => paths[i].normal.set(0, 0, 1).applyEuler(r.group.rotation));
+    anchors.forEach((d, i) => {
+      const path = paths[i % 3], a = d.a, r = path.radius + d.lane;
+      p.copy(path.u).multiplyScalar(Math.cos(a) * r).addScaledVector(path.v, Math.sin(a) * r); p.y -= .15;
+      dummy.position.copy(p); dummy.scale.setScalar(d.scale); dummy.updateMatrix(); particles.setMatrixAt(i, dummy.matrix);
+    });
+    placeInstances(copperParticles, copperAnchors, 1, .4, 0);
+    renderer.render(scene, camera);
+    requestAnimationFrame(frame);
+  })();
+  </script>
+</body>
+</html>

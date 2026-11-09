@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cobalt Orrery — Kinetic Sculpture</title>
+<style>
+  :root{color-scheme:dark;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+  *{box-sizing:border-box}
+  html,body{width:100%;height:100%;margin:0;overflow:hidden;background:#060d1d;color:#edf3ff}
+  canvas{display:block;width:100%;height:100%;cursor:grab;touch-action:none;outline:none}
+  canvas.dragging{cursor:grabbing}
+  canvas:focus-visible{outline:3px solid #8fb2ff;outline-offset:-4px}
+  header{position:fixed;top:24px;left:28px;z-index:2;pointer-events:none;text-shadow:0 2px 16px #000}
+  h1{margin:0;font-size:clamp(24px,2.3vw,38px);font-weight:500;letter-spacing:.04em}
+  header p{margin:7px 0 0;color:#a9b9d5;font-size:16px;letter-spacing:.12em;text-transform:uppercase}
+  .panel{position:fixed;z-index:3;left:50%;bottom:22px;transform:translateX(-50%);display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid #344463;border-radius:14px;background:rgba(8,16,32,.88);backdrop-filter:blur(10px);font-size:16px;white-space:nowrap}
+  button{min-height:42px;padding:8px 16px;border:1px solid #526583;border-radius:9px;background:#15213a;color:#f4f7ff;font:inherit;cursor:pointer}
+  button:hover{background:#203152;border-color:#8fa8d2}
+  button:focus-visible,input:focus-visible{outline:3px solid #a9c4ff;outline-offset:3px}
+  .speed{display:flex;align-items:center;gap:10px;padding:0 5px}
+  input[type=range]{width:130px;accent-color:#78a0ff;cursor:pointer}
+  output{min-width:40px;color:#c9d9f7;font-variant-numeric:tabular-nums}
+  #error{position:fixed;inset:0;z-index:10;display:none;place-items:center;padding:30px;background:#060d1d;text-align:center}
+  #error div{max-width:620px;font-size:20px;line-height:1.6}
+  #error strong{display:block;font-size:28px;color:#ffb59d;margin-bottom:12px}
+  @media(max-width:650px){header{top:18px;left:20px}.panel{bottom:14px;gap:8px;padding:10px;flex-wrap:wrap;justify-content:center;width:calc(100% - 24px)}input[type=range]{width:100px}button{padding:8px 12px}}
+</style>
+</head>
+<body>
+<canvas id="view" tabindex="0" aria-label="Interactive cobalt kinetic sculpture. Drag or use arrow keys to orbit; use plus and minus to zoom."></canvas>
+<header><h1>Cobalt Orrery</h1><p>A kinetic study in metal and light</p></header>
+<div class="panel" aria-label="Sculpture controls">
+  <button id="toggle" type="button">Pause</button>
+  <button id="reset" type="button">Reset view</button>
+  <label class="speed" for="speed">Speed <input id="speed" type="range" min="0.1" max="2" step="0.1" value="1"><output id="rate" for="speed">1.0×</output></label>
+</div>
+<div id="error" role="alert"><div><strong>WebGL is unavailable</strong>This sculpture needs WebGL. Please enable hardware acceleration or open this page in a browser with WebGL support.</div></div>
+<noscript><div style="position:fixed;inset:0;display:grid;place-items:center;background:#060d1d;font-size:20px;padding:30px">JavaScript is required to display this sculpture.</div></noscript>
+<script src="./vendor/three.min.js"></script>
+<script>
+(function(){
+  'use strict';
+  const canvas=document.getElementById('view'),error=document.getElementById('error');
+  if(!window.THREE){error.style.display='grid';return;}
+  let renderer;
+  try{renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});}
+  catch(e){error.style.display='grid';return;}
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
+  renderer.setClearColor(0x060d1d);
+  renderer.outputColorSpace=THREE.SRGBColorSpace;
+  renderer.toneMapping=THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure=1.05;
+  const scene=new THREE.Scene();
+  scene.fog=new THREE.FogExp2(0x060d1d,.026);
+  const camera=new THREE.PerspectiveCamera(42,1,.1,60);
+  const target=new THREE.Vector3(0,-.15,0);
+  let theta=.48,phi=1.39,radius=11.2;
+  function positionCamera(){
+    camera.position.set(radius*Math.sin(phi)*Math.sin(theta),target.y+radius*Math.cos(phi),radius*Math.sin(phi)*Math.cos(theta));
+    camera.lookAt(target);
+  }
+  scene.add(new THREE.HemisphereLight(0x8ca8ff,0x160f16,1.25));
+  const warm=new THREE.DirectionalLight(0xffc397,2.1);warm.position.set(4,6,5);scene.add(warm);
+  const cool=new THREE.DirectionalLight(0x6688ff,1.8);cool.position.set(-5,2,-3);scene.add(cool);
+  const coreLight=new THREE.PointLight(0x3266ff,16,7,2);coreLight.position.set(0,.2,0);scene.add(coreLight);
+  const copperLight=new THREE.PointLight(0xff8b4f,9,7,2);copperLight.position.set(3,-1,2);scene.add(copperLight);
+  const sculpture=new THREE.Group();scene.add(sculpture);
+  const metal=new THREE.MeshStandardMaterial({color:0x788aa9,metalness:.82,roughness:.24});
+  const copper=new THREE.MeshStandardMaterial({color:0xc87946,metalness:.8,roughness:.25,emissive:0x321006,emissiveIntensity:.18});
+  const darkMetal=new THREE.MeshStandardMaterial({color:0x111b2d,metalness:.7,roughness:.35});
+  const coreMat=new THREE.MeshStandardMaterial({color:0x174ee8,emissive:0x064dff,emissiveIntensity:1.45,metalness:.3,roughness:.22});
+  const core=new THREE.Mesh(new THREE.SphereGeometry(.38,40,28),coreMat);sculpture.add(core);
+  const glow=new THREE.Mesh(new THREE.SphereGeometry(.5,28,20),new THREE.MeshBasicMaterial({color:0x286cff,transparent:true,opacity:.13,blending:THREE.AdditiveBlending,depthWrite:false}));sculpture.add(glow);
+  const equator=new THREE.Mesh(new THREE.TorusGeometry(.48,.018,8,64),copper);equator.rotation.x=Math.PI/2;sculpture.add(equator);
+  const orbitSystems=[];
+  const configs=[
+    {r:1.75,tilt:[.72,.18,.12],speed:.34,color:0x72a1ff},
+    {r:2.35,tilt:[1.22,-.55,.62],speed:-.23,color:0xffb079},
+    {r:3.02,tilt:[.42,.86,-.3],speed:.16,color:0x83aaff}
+  ];
+  configs.forEach((cfg,index)=>{
+    const pivot=new THREE.Group();pivot.rotation.set(...cfg.tilt);sculpture.add(pivot);
+    pivot.add(new THREE.Mesh(new THREE.TorusGeometry(cfg.r,.055,12,160),metal));
+    for(let j=0;j<3;j++){
+      const arc=new THREE.Mesh(new THREE.TorusGeometry(cfg.r,.074,10,30,.48),copper);
+      arc.rotation.z=j*Math.PI*2/3+index*.37;pivot.add(arc);
+    }
+    const bead=new THREE.Mesh(new THREE.SphereGeometry(.11,18,12),copper);pivot.add(bead);
+    const count=240,positions=new Float32Array(count*3),colors=new Float32Array(count*3),phases=new Float32Array(count),radii=new Float32Array(count),heights=new Float32Array(count);
+    const blue=new THREE.Color(cfg.color),amber=new THREE.Color(0xffa86f);
+    for(let i=0;i<count;i++){
+      phases[i]=i/count*Math.PI*2+.025*Math.sin(i*2.39);
+      radii[i]=cfg.r+.075*Math.sin(i*1.73);
+      heights[i]=.052*Math.cos(i*2.17);
+      const c=i%9===0?amber:blue;
+      colors[i*3]=c.r;colors[i*3+1]=c.g;colors[i*3+2]=c.b;
+    }
+    const geometry=new THREE.BufferGeometry();
+    geometry.setAttribute('position',new THREE.BufferAttribute(positions,3).setUsage(THREE.DynamicDrawUsage));
+    geometry.setAttribute('color',new THREE.BufferAttribute(colors,3));
+    const points=new THREE.Points(geometry,new THREE.PointsMaterial({size:.043,vertexColors:true,transparent:true,opacity:.85,blending:THREE.AdditiveBlending,depthWrite:false,sizeAttenuation:true}));
+    pivot.add(points);
+    orbitSystems.push({pivot,cfg,bead,positions,phases,radii,heights,geometry,baseX:cfg.tilt[0],baseY:cfg.tilt[1]});
+  });
+  const stem=new THREE.Mesh(new THREE.CylinderGeometry(.035,.06,2.95,16),copper);stem.position.y=-1.78;scene.add(stem);
+  const base=new THREE.Mesh(new THREE.CylinderGeometry(2.05,2.2,.22,80),darkMetal);base.position.y=-3.3;scene.add(base);
+  const lip=new THREE.Mesh(new THREE.TorusGeometry(2.08,.035,10,100),copper);lip.rotation.x=Math.PI/2;lip.position.y=-3.19;scene.add(lip);
+  const lowerBase=new THREE.Mesh(new THREE.CylinderGeometry(1.72,1.85,.16,64),metal);lowerBase.position.y=-3.48;scene.add(lowerBase);
+  const floor=new THREE.Mesh(new THREE.CircleGeometry(16,72),new THREE.MeshStandardMaterial({color:0x070e1b,roughness:.86,metalness:.12}));
+  floor.rotation.x=-Math.PI/2;floor.position.y=-3.57;scene.add(floor);
+  function updateScene(t){
+    orbitSystems.forEach((o,i)=>{
+      o.pivot.rotation.x=o.baseX+Math.sin(t*.15+i)*.055;
+      o.pivot.rotation.y=o.baseY+Math.sin(t*.12+i*1.7)*.09;
+      for(let j=0;j<o.phases.length;j++){
+        const a=o.phases[j]+t*o.cfg.speed;
+        const r=o.radii[j]+.018*Math.sin(a*3+t*.35);
+        o.positions[j*3]=Math.cos(a)*r;
+        o.positions[j*3+1]=Math.sin(a)*r;
+        o.positions[j*3+2]=o.heights[j]+.025*Math.sin(a*2+t*.25);
+      }
+      o.geometry.attributes.position.needsUpdate=true;
+      const a=t*o.cfg.speed*1.8+i*2.1;
+      o.bead.position.set(Math.cos(a)*o.cfg.r,Math.sin(a)*o.cfg.r,0);
+    });
+    const pulse=1+Math.sin(t*1.7)*.025;
+    core.scale.setScalar(pulse);glow.scale.setScalar(1+Math.sin(t*1.35)*.07);
+    coreMat.emissiveIntensity=1.4+Math.sin(t*1.4)*.12;
+  }
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
+  let paused=reduced.matches,speed=1,time=0,last=performance.now(),dragging=false,px=0,py=0;
+  const toggle=document.getElementById('toggle');
+  toggle.textContent=paused?'Resume':'Pause';
+  toggle.setAttribute('aria-pressed',String(paused));
+  toggle.addEventListener('click',()=>{paused=!paused;toggle.textContent=paused?'Resume':'Pause';toggle.setAttribute('aria-pressed',String(paused));});
+  document.getElementById('reset').addEventListener('click',()=>{theta=.48;phi=1.39;radius=11.2;positionCamera();});
+  const slider=document.getElementById('speed'),rate=document.getElementById('rate');
+  slider.addEventListener('input',()=>{speed=Number(slider.value);rate.value=speed.toFixed(1)+'×';rate.textContent=rate.value;});
+  canvas.addEventListener('pointerdown',e=>{dragging=true;px=e.clientX;py=e.clientY;canvas.setPointerCapture(e.pointerId);canvas.classList.add('dragging');});
+  canvas.addEventListener('pointermove',e=>{
+    if(!dragging)return;
+    theta-=(e.clientX-px)*.006;phi=Math.max(.3,Math.min(2.75,phi+(e.clientY-py)*.006));
+    px=e.clientX;py=e.clientY;positionCamera();
+  });
+  function endDrag(){dragging=false;canvas.classList.remove('dragging');}
+  canvas.addEventListener('pointerup',endDrag);canvas.addEventListener('pointercancel',endDrag);
+  canvas.addEventListener('wheel',e=>{e.preventDefault();radius=Math.max(7,Math.min(17,radius+e.deltaY*.008));positionCamera();},{passive:false});
+  canvas.addEventListener('keydown',e=>{
+    let used=true;
+    if(e.key==='ArrowLeft')theta-=.1;else if(e.key==='ArrowRight')theta+=.1;
+    else if(e.key==='ArrowUp')phi=Math.max(.3,phi-.1);else if(e.key==='ArrowDown')phi=Math.min(2.75,phi+.1);
+    else if(e.key==='+'||e.key==='=')radius=Math.max(7,radius-.5);else if(e.key==='-')radius=Math.min(17,radius+.5);else used=false;
+    if(used){e.preventDefault();positionCamera();}
+  });
+  function resize(){
+    const w=window.innerWidth,h=window.innerHeight;
+    renderer.setSize(w,h,false);camera.aspect=w/h;camera.fov=camera.aspect<1?58:42;camera.updateProjectionMatrix();
+  }
+  window.addEventListener('resize',resize);resize();positionCamera();updateScene(0);
+  function frame(now){
+    requestAnimationFrame(frame);
+    const dt=Math.min((now-last)/1000,.05);last=now;
+    if(!paused){time+=dt*speed;updateScene(time);}
+    renderer.render(scene,camera);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

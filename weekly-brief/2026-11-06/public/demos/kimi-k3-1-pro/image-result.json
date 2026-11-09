@@ -1,0 +1,14 @@
+{
+  "ok": false,
+  "mode": "image",
+  "question": null,
+  "answer": null,
+  "expected": null,
+  "correct": null,
+  "input_tokens": null,
+  "output_tokens": null,
+  "latency_ms": null,
+  "model": "kimi-k3-1-pro",
+  "requested_reasoning_effort": "low",
+  "error": "The specified endpoint does not exist, please check if the endpoint name is correct and the endpoint creation was successful."
+}

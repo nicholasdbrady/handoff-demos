@@ -1,0 +1,37 @@
+{
+  "expected": "2.10.0 (2026-10-30)",
+  "characters": 42945,
+  "source_commit": "bc38a4386dd702cb67039f12291655282d3c2819",
+  "sources": [
+    {
+      "path": "sdk/ai/azure-ai-agents/CHANGELOG.md",
+      "url": "https://github.com/Azure/azure-sdk-for-python/blob/bc38a4386dd702cb67039f12291655282d3c2819/sdk/ai/azure-ai-agents/CHANGELOG.md",
+      "characters": 11784,
+      "sha256": "6fddce928570b50a7041a014f20f67b41cee387a206476c3c54f406b96699adf",
+      "truncated": false
+    },
+    {
+      "path": "sdk/ai/azure-ai-projects/CHANGELOG.md",
+      "url": "https://github.com/Azure/azure-sdk-for-python/blob/bc38a4386dd702cb67039f12291655282d3c2819/sdk/ai/azure-ai-projects/CHANGELOG.md",
+      "characters": 16000,
+      "sha256": "802159bac960387a3ed9fe1bc2370ac9b23de97dd44bd5f87c35fd1a777e71b8",
+      "truncated": true
+    },
+    {
+      "path": "sdk/ai/azure-ai-finetuningsessions/CHANGELOG.md",
+      "url": "https://github.com/Azure/azure-sdk-for-python/blob/bc38a4386dd702cb67039f12291655282d3c2819/sdk/ai/azure-ai-finetuningsessions/CHANGELOG.md",
+      "characters": 9164,
+      "sha256": "be2d52cbba87c7002b42c761b34fe70203a9f129e3d2efee6598d84c213f9687",
+      "truncated": false
+    },
+    {
+      "path": "sdk/ai/azure-ai-inference/CHANGELOG.md",
+      "url": "https://github.com/Azure/azure-sdk-for-python/blob/bc38a4386dd702cb67039f12291655282d3c2819/sdk/ai/azure-ai-inference/CHANGELOG.md",
+      "characters": 5768,
+      "sha256": "bbf35125e5488b8d44cf51a279db9345f1738fa4b95cd1e848e1401117852499",
+      "truncated": false
+    }
+  ],
+  "sha256": "cd779cca1f44573eea3fc46d43271401bbf28496a1e6ec47cc832f5f9655fbb6",
+  "note": "Bounded public changelog excerpts; not a million-token benchmark."
+}

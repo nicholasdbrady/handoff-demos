@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675">
+  <rect width="1200" height="675" fill="#f4f6f8"/>
+  <g font-family="Segoe UI, sans-serif" fill="#101820">
+    <text x="70" y="85" font-size="44" font-weight="700">Kinetic sculpture: particle allocation</text>
+    <text x="70" y="135" font-size="24">Illustrative design input, not model output</text>
+    <text x="70" y="250" font-size="32">Cobalt</text>
+    <text x="70" y="370" font-size="32">Copper</text>
+    <text x="70" y="490" font-size="32">Silver</text>
+    <rect x="260" y="202" width="450" height="70" fill="#0759d6"/>
+    <rect x="260" y="322" width="600" height="70" fill="#a65b26"/>
+    <rect x="260" y="442" width="300" height="70" fill="#687889"/>
+    <text x="740" y="250" font-size="32">180 particles</text>
+    <text x="890" y="370" font-size="32">240 particles</text>
+    <text x="590" y="490" font-size="32">120 particles</text>
+    <text x="70" y="600" font-size="24">Question: Which orbit has the most particles, and how many?</text>
+  </g>
+</svg>

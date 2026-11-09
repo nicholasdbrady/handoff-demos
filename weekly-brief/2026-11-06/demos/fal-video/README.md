@@ -12,8 +12,8 @@ generation and recordings, while the educational visual is ready.
 
 1. Show `public/demos/fal-video/comparison.svg` from the presentation.
 2. Ask: **When is a fast draft more useful than a higher-quality render?**
-3. Compare Fast/Pro within LTX and Turbo/Max within MiniMax using the same
-   settings within each family. The bars show illustrative cost, not latency.
+3. Compare Fast/Pro within LTX and H3 Max Turbo/Max within MiniMax. The visual
+   shows documented differentiators, not measured speed or quality rankings.
 4. Explain the live gate: access, offering/region, quota, cost, and terms.
    Being in a public-preview announcement does not establish subscription access.
 
@@ -46,6 +46,8 @@ below multiply the **table** rate by requested seconds. They are illustrative,
 not confirmed charges. The launch says prices will reach the Azure pricing page
 in the coming weeks. Confirm both the current rate and unit in the deployment
 UI before populating the runner's price configuration.
+Keep this pricing evidence in presenter notes; it is intentionally absent from
+the on-screen comparison because the units conflict.
 
 | Model | Official offering / hosting statement | Launch table USD/video-second | Small illustrative request | Access here |
 |---|---|---|---|---|
@@ -173,7 +175,12 @@ Azure bearer tokens are never sent to third-party storage links or redirects.
 ## Assets, validation, resources and cleanup
 
 `manifest.json` and `evidence.json` are under `public/demos/fal-video/`.
-`comparison.svg` is an authored infographic, **not** model-generated media.
+`comparison.svg` is a 1280x480 authored infographic for a 16:9 slide, **not**
+model-generated media. It uses the Handoff navy/cobalt palette and IBM Plex Sans
+font stack, with all visible text at least 24px. Keep the graphic wide rather
+than shrinking it into a narrow column; source citations and pricing remain in
+these notes. IBM Plex Sans is preferred, with the repository's Segoe UI fallback
+when the font is not installed in the SVG viewer.
 No sample video or fake poster is included. Recorded video payload is **0 MB**.
 There are no measured timings, fps, clip sizes, or billed clip costs.
 

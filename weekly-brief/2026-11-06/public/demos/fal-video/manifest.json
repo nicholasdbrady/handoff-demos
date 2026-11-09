@@ -20,10 +20,10 @@
     {
       "path": "/demos/fal-video/comparison.svg",
       "kind": "image",
-      "caption": "Source-based options and illustrative cost comparison; not generated video.",
-      "alt": "LTX Fast versus Pro at 720p for six seconds: illustrative costs $0.54 versus $0.72. MiniMax Turbo versus Max at 480P for five seconds: $0.125 versus $0.25. Kling Pro supports native audio. Live generation blocked by unregistered preview feature; pricing units need confirmation.",
+      "caption": "Source-based model options for fast drafts and final-quality evaluation; not generated video or a benchmark.",
+      "alt": "LTX-2.5 Fast supports rapid iteration and Pro focuses on output quality; both support synchronized audio. MiniMax H3 Max Turbo and Max support text and image inputs; Max adds image, video and audio references. Kling v3 Pro supports native audio and multi-shot prompts. Check preview access, region and offering, quota, cost and terms. Live unavailable: Fal.EnableDeploy is NotRegistered.",
       "model": null,
-      "metrics": {"seconds": null, "width": 1280, "height": 860, "duration_s": null, "est_cost_usd": null, "file_mb": null}
+      "metrics": {"seconds": null, "width": 1280, "height": 480, "duration_s": null, "est_cost_usd": null, "file_mb": null}
     },
     {
       "path": "/demos/fal-video/evidence.json",
@@ -47,7 +47,7 @@
     "The launch says US-hosted; Learn specifies US Data Zone for Kling and Global Standard PayGo for LTX/MiniMax. This does not establish all Azure US regions as deployable.",
     "No matching fal catalog entries were observed in East US or East US 2 while the feature was unregistered. This is not proof of global unavailability.",
     "No matching fal quota entries were returned in East US 2. Effective subscription RPM remains unverified; documented tiers are 0, 2, or 40 RPM.",
-    "The launch pricing prose says per minute but its table heading says per video second. All visual cost examples use the table heading, are illustrative, and require confirmation.",
+    "The launch pricing prose says per minute but its table heading says per video second. Pricing evidence and illustrative calculations are retained in evidence.json and README notes only; no prices appear in the on-screen visual. Confirm the unit before use.",
     "No measured speed, quality, fps, file size, or generated sample exists. Do not present this infographic as a model output or benchmark.",
     "Runner defaults to an available speed-oriented configured model, not an empirically fastest model. Versioned API routes follow Learn examples but live integration is unverified.",
     "No Azure resources or deployments were created, and no third-party terms were accepted."

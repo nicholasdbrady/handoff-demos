@@ -1,43 +1,35 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="860" viewBox="0 0 1280 860" role="img" aria-labelledby="title desc">
-  <title id="title">fal in Microsoft Foundry: fast draft or final render?</title>
-  <desc id="desc">Source-based model comparison, not generated video. LTX Fast and Pro share 720p settings with six-second illustrative cost estimates of 54 and 72 cents. MiniMax H3 Max Turbo and Max share 480p settings with five-second estimates of 12.5 and 25 cents. Kling Pro offers native audio and directed motion. Live generation is blocked because Fal.EnableDeploy is NotRegistered. Launch price units require confirmation.</desc>
-  <rect width="1280" height="860" fill="#101a23"/>
-  <g font-family="Segoe UI, Arial, sans-serif">
-    <text x="56" y="58" font-size="17" letter-spacing="3" fill="#77dcca">THE HANDOFF / NOV 9, 2026</text>
-    <text x="56" y="114" font-size="40" font-weight="700" fill="#f6f5ef">Fast draft or final render?</text>
-    <text x="56" y="150" font-size="21" fill="#c3ced5">Choose for the next decision, not for the biggest model name.</text>
-    <rect x="56" y="183" width="1168" height="42" rx="8" fill="#243542"/>
-    <text x="76" y="211" font-size="17" fill="#f6d29a">SOURCE-BASED COMPARISON / NO GENERATED SAMPLES / PUBLIC PREVIEW</text>
-    <rect x="56" y="251" width="565" height="269" rx="14" fill="#1b2a36"/>
-    <rect x="643" y="251" width="581" height="269" rx="14" fill="#1b2a36"/>
-    <text x="80" y="289" font-size="26" font-weight="700" fill="#ffffff">LTX-2.5 / synchronized audio</text>
-    <text x="80" y="323" font-size="18" fill="#bdcbd5">Same settings: 720p, 24 fps, 6 seconds</text>
-    <text x="80" y="363" font-size="20" font-weight="600" fill="#77dcca">FAST</text>
-    <rect x="166" y="344" width="270" height="26" rx="5" fill="#77dcca"/>
-    <text x="450" y="364" font-size="20" fill="#ffffff">$0.54*</text>
-    <text x="80" y="407" font-size="20" font-weight="600" fill="#e2baff">PRO</text>
-    <rect x="166" y="388" width="360" height="26" rx="5" fill="#e2baff"/>
-    <text x="540" y="408" font-size="20" fill="#ffffff">$0.72*</text>
-    <text x="80" y="456" font-size="19" fill="#ffffff">Fast: rapid iteration and previews</text>
-    <text x="80" y="488" font-size="19" fill="#ffffff">Pro: evaluate high-fidelity final output</text>
-    <text x="667" y="289" font-size="26" font-weight="700" fill="#ffffff">MiniMax H3 / post-trained variants</text>
-    <text x="667" y="323" font-size="18" fill="#bdcbd5">Same settings: 480P, 5 seconds; measure actual fps</text>
-    <text x="667" y="363" font-size="19" font-weight="600" fill="#77dcca">TURBO</text>
-    <rect x="773" y="344" width="170" height="26" rx="5" fill="#77dcca"/>
-    <text x="958" y="364" font-size="20" fill="#ffffff">$0.125*</text>
-    <text x="667" y="407" font-size="20" font-weight="600" fill="#e2baff">MAX</text>
-    <rect x="773" y="388" width="340" height="26" rx="5" fill="#e2baff"/>
-    <text x="1127" y="408" font-size="20" fill="#ffffff">$0.25*</text>
-    <text x="667" y="456" font-size="19" fill="#ffffff">Turbo: lower listed cost; evaluate turnaround</text>
-    <text x="667" y="488" font-size="19" fill="#ffffff">Max: adds image, video, and audio references</text>
-    <rect x="56" y="542" width="1168" height="94" rx="14" fill="#243542"/>
-    <text x="80" y="580" font-size="24" font-weight="700" fill="#ffffff">Kling v3 Pro / directed motion + native audio</text>
-    <text x="80" y="614" font-size="19" fill="#d3dce2">US Data Zone / 3-15 s / 5 s with audio off: $0.616* / resolution and fps: measure output</text>
-    <text x="56" y="675" font-size="21" font-weight="600" fill="#ffffff">Before a live attempt: access + offering/region + quota + cost + terms</text>
-    <text x="56" y="711" font-size="18" fill="#f6d29a">Here: Fal.EnableDeploy = NotRegistered. No requests, resources, clips, or measured timings.</text>
-    <text x="56" y="747" font-size="17" fill="#bdcbd5">*Illustrative requested-duration cost using the launch table's USD/video-second heading.</text>
-    <text x="56" y="774" font-size="17" fill="#bdcbd5">Its prose says per minute: confirm the unit in the deployment UI. These are not invoices.</text>
-    <text x="56" y="814" font-size="16" fill="#a5b5c0">Sources: Microsoft announcement (Nov 5) + Microsoft Learn fal preview guide. Retrieved Nov 9, 2026.</text>
-    <text x="56" y="840" font-size="15" fill="#a5b5c0">Bars compare cost within each family only. No measured speed ranking or quality result is claimed.</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="480" viewBox="0 0 1280 480" role="img" aria-labelledby="title desc">
+  <title id="title">Fast draft or final render? fal model options in Microsoft Foundry</title>
+  <desc id="desc">Source-based comparison, not generated samples or a benchmark. LTX-2.5 Fast supports rapid iteration, while Pro focuses on output quality; both support synchronized audio. MiniMax H3 Max Turbo and Max support text and image inputs; Max also supports image, video and audio references. Kling v3 Pro supports native audio and multi-shot prompts. Check preview access, region and offering, quota, cost and terms before generation. Live generation is unavailable because Fal.EnableDeploy is NotRegistered.</desc>
+  <rect width="1280" height="480" fill="#0b1026"/>
+  <rect width="1280" height="8" fill="#4e52b9"/>
+  <g font-family="IBM Plex Sans, Segoe UI, sans-serif" fill="#ecf1ff">
+    <text x="40" y="63" font-size="40" font-weight="700">Fast draft or final render?</text>
+    <text x="40" y="102" font-size="26" fill="#c5d1ff">Choose for the decision: explore a concept, then evaluate final quality.</text>
+    <path d="M40 126H1240" stroke="#5864b7"/>
+    <path d="M440 146V342M848 146V342" stroke="#5864b7"/>
+    <g font-size="26" font-weight="700" fill="#68a1ff">
+      <text x="40" y="168">LTX-2.5</text>
+      <text x="472" y="168">MiniMax H3</text>
+      <text x="880" y="168">Kling v3 Pro</text>
+    </g>
+    <g font-size="24">
+      <text x="40" y="211"><tspan font-weight="700">Fast</tspan><tspan> / rapid iteration</tspan></text>
+      <text x="40" y="249"><tspan font-weight="700">Pro</tspan><tspan> / output quality</tspan></text>
+      <text x="40" y="294" fill="#c5d1ff">Both: synchronized audio</text>
+      <text x="40" y="328" fill="#c5d1ff">Text or image to video</text>
+      <text x="472" y="211" font-weight="700">H3 Max Turbo / H3 Max</text>
+      <text x="472" y="249" fill="#c5d1ff">Both: text or image input</text>
+      <text x="472" y="294">Max adds reference-to-video</text>
+      <text x="472" y="328" fill="#c5d1ff">Image, video + audio references</text>
+      <text x="880" y="211">Native audio generation</text>
+      <text x="880" y="249">Multi-shot prompts</text>
+      <text x="880" y="294" fill="#c5d1ff">Text or image to video</text>
+      <text x="880" y="328" fill="#c5d1ff">US Data Zone offering</text>
+    </g>
+    <path d="M40 360H1240" stroke="#5864b7"/>
+    <text x="40" y="401" font-size="24" font-weight="700">Preview checks: access / region + offering / quota / cost / terms</text>
+    <circle cx="46" cy="444" r="6" fill="#f0a439"/>
+    <text x="64" y="452" font-size="24" fill="#f0a439">Live unavailable: Fal.EnableDeploy is NotRegistered</text>
   </g>
 </svg>

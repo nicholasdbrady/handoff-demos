@@ -156,7 +156,14 @@ class RunnerTests(unittest.TestCase):
             rate = model["rates"].get(model.get("illustrative_resolution"), model["rates"].get("audio_off"))
             self.assertAlmostEqual(model["illustrative_duration_s"] * rate, model["illustrative_est_cost_usd"])
         svg = ET.parse(public / "comparison.svg").getroot()
-        self.assertEqual((svg.attrib["width"], svg.attrib["height"]), ("1280", "860"))
+        self.assertEqual((svg.attrib["width"], svg.attrib["height"]), ("1280", "480"))
+        texts = svg.findall(".//{http://www.w3.org/2000/svg}text")
+        visible_copy = " ".join("".join(text.itertext()) for text in texts)
+        self.assertNotIn("$", visible_copy)
+        self.assertNotIn("$", manifest["assets"][0]["alt"])
+        self.assertIn("IBM Plex Sans", (public / "comparison.svg").read_text())
+        self.assertTrue(all(float(node.attrib["font-size"]) >= 24
+                            for node in svg.iter() if "font-size" in node.attrib))
 
 
 if __name__ == "__main__":

@@ -66,7 +66,7 @@ function toggleVerification() {
           <text x="94" y="124" class="verified-axis-label">0</text>
           <text x="464" y="124" text-anchor="end" class="verified-axis-label">507 outcomes</text>
         </svg>
-        <p class="verified-chart-note">Research-trained Qwen checkpoint · not the stock local model</p>
+        <p class="verified-chart-note">Research-trained Qwen checkpoint</p>
       </figure>
     </div>
     <p class="verified-live-status" role="status" aria-live="polite">

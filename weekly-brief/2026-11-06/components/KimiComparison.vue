@@ -79,7 +79,7 @@ async function load() {
     prompt.value = question
     if (typeof manifest.captured_at !== 'string') throw new Error('Missing capture timestamp.')
     if (Number.isNaN(new Date(manifest.captured_at).valueOf())) throw new Error('Invalid capture timestamp.')
-    timestamp.value = new Date(manifest.captured_at).toLocaleString('en-US', { timeZone: 'America/Los_Angeles', timeZoneName: 'short' })
+    timestamp.value = new Date(manifest.captured_at).toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', month: 'short', day: '2-digit' })
     const health = await fetch('/demo-api/health', { headers: { 'X-Demo-Client': 'slidev' } })
     if (health.ok) liveEnabled.value = (await health.json()).live_enabled === true
   } catch (cause) { error.value = cause instanceof Error ? cause.message : String(cause) }
@@ -132,11 +132,6 @@ onMounted(load)
               <th>{{ row.requested_reasoning_effort }}</th><td>{{ row.total_tokens.toLocaleString('en-US') }}</td><td>{{ (row.latency_ms / 1000).toFixed(2) }}</td>
             </tr></tbody>
           </table>
-          <div class="demo-limits" aria-label="Demo limits">
-            <p>Reasoning tokens are included in output tokens.</p>
-            <p>One sample per reasoning setting; not a quality ranking.</p>
-            <p>Nov 9 catalog: GA; brief: preview. Cutoff status is unverified.</p>
-          </div>
         </aside>
       </div>
       <details class="kimi-prompt"><summary>Exact shared prompt</summary><pre tabindex="0">{{ prompt }}</pre></details>

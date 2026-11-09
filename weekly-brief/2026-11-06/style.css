@@ -87,4 +87,3 @@
 .capture-benchmark :is(.capture-details, .capture-metrics, figcaption) { display: none; }
 .capture-benchmark .capture-media, .capture-benchmark figure { margin: 0; padding: 0; max-height: none; overflow: visible; }
 .capture-benchmark .capture-artifact { display: block; width: 1280px; height: 720px; max-height: none; border: 0; }
-.benchmark-slide .benchmark-limit { position: absolute; bottom: 76px; left: 40px; margin: 0; font-size: 19px; line-height: 1.3; color: var(--stage-ink); }

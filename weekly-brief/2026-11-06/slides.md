@@ -3,8 +3,8 @@ theme: default
 title: "The Handoff: weekly Foundry news brief"
 author: Nick Brady
 info: |
-  Microsoft Foundry developer briefing for 9 November 2026.
-  Reporting window: 30 October 13:01 PDT to 6 November 12:01 PST.
+  Microsoft Foundry developer briefing for Nov 09.
+  Reporting window: Oct 30 to Nov 06.
 class: chapter
 colorSchema: auto
 aspectRatio: 16/9
@@ -24,7 +24,7 @@ selectable: true
 
 <div class="display">The Handoff.<br>Weekly Foundry brief.</div>
 <p class="lede">A more complete path from agent code<br>to a result we can verify.</p>
-<div class="brief-window"><strong>Oct 30 · 1:01 p.m. PDT</strong><span>through</span><strong>Nov 6 · 12:01 p.m. PST</strong></div>
+<div class="brief-window"><strong>Oct 30</strong><span>through</span><strong>Nov 06</strong></div>
 
 <!--
 I am covering the reporting window from October 30 at 1:01 p.m. Pacific Daylight Time through November 6 at 12:01 p.m. Pacific Standard Time. That precise boundary matters because daylight saving time ended during this week. I will keep product releases, preview models, implementation guidance, and research separate. For developers, the useful question is what changes the next build, test, or deployment decision. Our demos identify captured and live results explicitly. Where our environment cannot run a model, the diagrams and walkthroughs still explain how it works, the developer tradeoff, and the prerequisites for trying it.
@@ -65,7 +65,6 @@ https://commandline.microsoft.com/thinkingbox-part-two-expanded-model-evals-rein
 <div><h2>Agent Inspector</h2><p>Test locally.</p></div><span aria-hidden="true">→</span>
 <div><h2>Hosted agent</h2><p>Deploy to Foundry.</p></div>
 </div>
-<p class="lede">Keep the deployment conversation in source control.</p>
 
 <!--
 I am starting with the development workflow: agent code, a reviewed azure.yaml, local Agent Inspector testing, and deployment to a hosted agent. The value is not simply another CLI command. It is keeping deployment intent next to the application so that another engineer can review it before infrastructure changes. The bundle's 1.0 announcement is the GA milestone; individual capabilities can have their own lifecycle. A full deployment still requires Azure permissions, quota, azd 1.37 or later, and billable resources. I will return to this workflow in our first show-ready conversation and show the actual demo state separately.
@@ -88,7 +87,6 @@ https://github.com/Azure/azure-dev/tree/main/cli/azd/extensions/azure.ai.agents
 <rect x="840" y="50" width="250" height="130" rx="12"/><text x="965" y="110">Local inference</text><text class="brief-svg-caption" x="965" y="146">Execution provider + GPU</text>
 </svg>
 <p class="caption">Qwen walkthrough: ~18 GB model · NVIDIA ≥24 GB VRAM · separate CUDA + cuDNN setup</p>
-<p class="caption">No live Local demo on this machine. The hardware boundary is part of the lesson.</p>
 
 <!--
 I want us to separate the SDK update from the hardware decision. Foundry Local SDK 2.3.0 adds a shared native model cache and inference and reliability improvements. CLI 0.13.0 is still preview. The Qwen coding walkthrough is a specific setup, not a minimum requirement for every Foundry Local model: its package is approximately 18 gigabytes and the example needs an NVIDIA GPU with at least 24 gigabytes of VRAM, plus CUDA and cuDNN setup. Our hardware does not meet that example, so I am using the architecture visual to explain model sharing and hardware fit. Local inference also does not make all surrounding Copilot operations offline.
@@ -112,7 +110,6 @@ https://devblogs.microsoft.com/foundry/foundry-local-agentic-coding-qwen3-8-27b/
 <tr><td>Kling v3</td><td>Compare on your prompt</td><td>Pro</td></tr>
 </tbody>
 </table>
-<p class="caption">A choice framework, not measured latency or a quality leaderboard. Check model access, region, quota, and pricing.</p>
 
 <!--
 I am treating model selection as a workflow decision: when do I need a fast draft, and when is another quality pass worth the time and cost? Microsoft announced five fal portfolio models in public preview: Kling v3 Pro, LTX-2.5 Fast and Pro, and MiniMax H3 Max and Max Turbo. The brief's shorthand Turbo name needs the full Max Turbo product name. The initial portfolio is US-hosted; the announcement lists Kling as US Data Zone and LTX and MiniMax as Global Standard. This table is a conceptual comparison, not our measured benchmark. Our subscription lacks approved fal access, so I will not imply that a video was generated.
@@ -159,7 +156,6 @@ class: benchmark-slide
 # Kimi: test a harder task.
 
 <DemoCapture class="capture-benchmark" slug="kimi-k3-1-pro-benchmark" asset-match="benchmark.html" />
-<p class="benchmark-limit">Bespoke three-trial test with fictional planted fixtures. Cost is an estimate.</p>
 
 <!--
 I asked Kimi to read an image policy, select a route, join distributed records while rejecting stale epochs, and verify real SDK code facts. Each high-effort trial received 373,132 service-reported input tokens. All three attempted trials passed, with all thirty-three exact fields correct. Latencies were 37.3, 26.6, and 25.0 seconds; the median was 26.6 seconds. The uncached cost estimate totals about two dollars sixty, not a billing receipt. The source code is real; the planted routing records are fictional fixtures. This is a small bespoke benchmark, not a leaderboard or a million-token test. I can expand the exact prompt and grading.
@@ -180,7 +176,6 @@ Captured 2026-11-09T09:21:08.106280Z; public/demos/kimi-k3-1-pro-benchmark/manif
 <path d="M670 115h90m-15-10 15 10-15 10"/>
 <rect x="760" y="35" width="330" height="160" rx="12"/><text x="925" y="100">Shipped application</text><text class="brief-svg-caption" x="925" y="140">Runtime skills are separate</text>
 </svg>
-<p class="lede">Development-time guidance is not a runtime dependency.</p>
 
 <!--
 I want to make this boundary unmistakable. Agent Framework builder skills guide a coding agent while it develops a .NET or Python application. They help it choose patterns and load the relevant framework guidance. The November 4 guide recommends the smallest suitable pattern and pairing focused builder guidance with Microsoft Learn MCP for complete documentation. These skills are not automatically runtime skills inside the application it ships, and the Python builder skill is not a Python package installed by that application. For developers, this avoids confusing the assistant's development instructions with the deployed agent's capabilities. Pin the skill revision when you need a reproducible development environment.
@@ -197,11 +192,7 @@ class: demo-slide
 
 # Builder skills: from guidance to checked code.
 
-<DemoCapture slug="maf-skills" :onscreen-caveats="[
-  'Builder skills guide development; they are not runtime skills.',
-  'This Python app configures its own model and function tool.',
-  'Live calls require Foundry access and can incur charges.',
-]" />
+<DemoCapture slug="maf-skills" />
 
 <!--
 I will follow the coding agent from the builder instructions into the application it produces. The captured Python application called the add tool once with nineteen and twenty-three, then returned forty-two. Its measured live run took 10.602 seconds. I can inspect the installed guidance, generated code, and execution transcript separately. The skill helps the coding assistant choose framework patterns and checks; it is not imported by the shipped application. The application configures its own Foundry client, instructions, and function tool. For developers, that gives us two review boundaries: check the assistant's development work, then check what the deployed application actually does.
@@ -235,7 +226,6 @@ https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/improve-productio
 <div><h2>Inspect policy</h2><p>Findings before model deployment.</p></div>
 <div><h2>Watch the build</h2><p>Hosted-agent container progress in Output.</p></div>
 </div>
-<p class="caption">Audit findings are non-blocking. Policy effects still matter.</p>
 
 <!--
 I am focusing on the three Toolkit 1.6.19 changes that reduce friction while building. Project-connection models become available in Agent Builder, hosted-agent creation, and Model Playground. Policy findings appear in model details and before deployment, giving developers a chance to inspect governance constraints earlier. Audit findings are non-blocking; that does not make every policy effect advisory. Hosted-agent container build progress is visible in the Toolkit Output channel, which makes waiting easier to diagnose. The release also contains other improvements, but these cards isolate one useful story: discover the right model, inspect the deployment conditions, and observe the build.
@@ -254,7 +244,6 @@ https://marketplace.visualstudio.com/items?itemName=ms-windows-ai-studio.windows
 <div><h2>Start from a prompt</h2><p>Agent prompt gallery.</p></div>
 <div><h2>Refresh resources</h2><p>Models, tools, toolboxes, skills.</p></div>
 </div>
-<p class="caption">1.0.19 was synced to the plugin repository. Its detailed notes are not yet in the changelog.</p>
 
 <!--
 I am separating recently documented features from the version synchronization record. Foundry Canvas notes describe prompt agents with harness in preview, an agent prompt gallery, and resource refresh for models, tools, toolboxes, and skills. Those features make the Copilot-side workflow more practical without turning a version number into a feature announcement. The plugin repository has a 1.0.19 sync record, but the detailed published changelog does not yet provide a 1.0.19 feature section. I will not assign undocumented changes to that version. For developers, use the available feature notes to understand behavior and the sync record only to identify the plugin version.
@@ -287,7 +276,6 @@ https://commandline.microsoft.com/thinkingbox-part-two-expanded-model-evals-rein
 <div><section><h2>Agent Framework</h2><span class="badge">Python 1.24.0</span></section><p>Supported baseline: Python 3.11+.<br>3.10 can install, but is unsupported.<br>Beta Redis: rebuild legacy indexes and re-ingest.</p></div>
 <div><section><h2>Foundry azd agents</h2><span class="badge">Extension 1.0</span></section><p>A bare image no longer suppresses registry provisioning.<br>Developer RBAC warnings are opt-in.<br>Role checks and automatic assignment stay enabled.</p></div>
 </div>
-<p class="caption">Review existing configurations before upgrading. Rebuild indexes under a controlled plan.</p>
 
 <!--
 I am grouping the changes that can alter an existing environment. Agent Framework Python 1.24.0 supports Python 3.11 and later; installability on 3.10 is not a support commitment. The beta Redis provider rejects legacy indexes, so I would schedule a controlled index rebuild and re-ingestion rather than discover it during a production request. In the azd agents extension, supplying a bare image no longer prevents registry provisioning. Developer RBAC warnings become opt-in, but role checks and automatic role assignment remain enabled. Developers should review their existing deployment configurations and permissions before upgrading, especially when their automation assumes previous provisioning behavior.
@@ -304,7 +292,7 @@ https://github.com/Azure/azure-dev/blob/main/cli/azd/extensions/azure.ai.agents/
 <div class="brief-migrations">
 <div><section><h2>Python Projects</h2><span class="badge">2.10.0</span></section><p>Simulation-seed generation exposes service-required <code>max_samples</code>.</p></div>
 <div><section><h2>.NET betas</h2></section><p>Review required <code>maxSamples</code> in Projects.<br>Use <code>BrowserAutomationToolboxTool</code> instead of the preview-named toolbox type.</p></div>
-<div><section><h2>REST specifications</h2></section><p>OpenAPI + voice-schema update merged November 4.<br>A specification merge is not service availability.</p></div>
+<div><section><h2>REST specifications</h2></section><p>OpenAPI + voice-schema update merged Nov 04.</p></div>
 </div>
 
 <!--
@@ -323,12 +311,11 @@ https://github.com/Azure/azure-rest-api-specs/pull/47196 (merged 2026-11-04T19:1
 
 # A cutoff is not a calendar date.
 
-<div class="brief-window"><strong>Published before cutoff</strong><span>│</span><strong>Oct 30 · 1:01 p.m. PDT</strong><span>│</span><strong>This week's window</strong></div>
+<div class="brief-window"><strong>Published before cutoff</strong><span>│</span><strong>Oct 30</strong><span>│</span><strong>This week's window</strong></div>
 <div class="brief-quad">
 <div><h2>JavaScript Projects 2.10.0</h2><p>Already published before the precise boundary.</p></div>
 <div><h2>Agent Framework .NET 1.27.0</h2><p>Already published before the precise boundary.</p></div>
 </div>
-<p class="caption">Useful upgrade context. Not counted as new this week.</p>
 
 <!--
 I am keeping these versions visible because developers may still need the migration context, but I am not counting them as new within this reporting window. JavaScript Projects 2.10.0 and Agent Framework .NET 1.27.0 were published before the precise October 30 cutoff. A date-only release summary can make a same-day package appear new when its publication time falls outside the window. The distinction is editorial, not a judgment about the importance of the release. I would still inspect the changelog before upgrading; I simply will not inflate this week's news count with packages already available at the start.
@@ -361,11 +348,7 @@ class: demo-slide
 
 # azd: inspect configuration and execution.
 
-<DemoCapture slug="azd-agent" :onscreen-caveats="[
-  'Deployment needs permissions, quota, and azd 1.37+.',
-  'Azure resources and model calls are billable.',
-  'The recorded Inspector latency is specific to that run.',
-]" />
+<DemoCapture slug="azd-agent" />
 
 <!--
 I will start with the reviewed azure.yaml: agent code, project dependency, model version, deployment type, and runtime resources. The recorded Agent Inspector screenshot shows a real local request that took 396.8 seconds; I will show that as recorded evidence, not repeat it as our live path. The captured hosted invocation took about 11.9 seconds. The Run live button makes a new hosted request using our server-side configuration and Azure CLI identity. Source upload and remote build avoid requiring a local container build. For developers, configuration review, local inspection, and hosted execution are distinct checks; none substitutes for the others.
@@ -413,11 +396,7 @@ class: demo-slide
 
 # Choose the right video model.
 
-<DemoCapture slug="fal-video" :onscreen-caveats="[
-  'Public preview, US-hosted: Kling US Data Zone; LTX and MiniMax Global Standard.',
-  'fal processes video outside Microsoft facilities.',
-  'Generation is unavailable here. Confirm access, quota, and pricing units before generating.',
-]" />
+<DemoCapture slug="fal-video" />
 
 <!--
 I will compare the portfolio through a practical sequence: choose a prompt, use a fast draft to test composition, and decide whether a quality-oriented pass is worth the added time and cost. LTX-2.5 has Fast and Pro options; MiniMax H3 has Max Turbo and Max; Kling v3 Pro adds another family to compare on the same task. Our subscription lacks approved fal deployment access, so this panel uses the source-based comparison rather than a generated video. For developers, access, region, quota, terms, and model-specific pricing are prerequisites. The model names suggest workflow options, but only task-specific results establish which one is best.
@@ -431,11 +410,10 @@ https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/building-the-next
 # MAI Image 2.6: check the deployment status.
 
 <div class="brief-cards">
-<div><h2>October 27</h2><p>Announcement:<br>2.6 + Flash called GA.</p></div>
-<div><h2>November 5</h2><p>October roundup:<br>2.6 called preview.</p></div>
+<div><h2>Oct 27</h2><p>Announcement:<br>2.6 + Flash called GA.</p></div>
+<div><h2>Nov 05</h2><p>October roundup:<br>2.6 called preview.</p></div>
 <div><h2>Learn guide</h2><p>Older guidance:<br>both listed as preview.</p></div>
 </div>
-<p class="lede">Do not announce a new GA or a downgrade from conflicting labels.</p>
 
 <!--
 I am preserving the status conflict instead of smoothing it into a more confident story. The October 27 announcement calls MAI Image 2.6 and Flash generally available. The November 5 October roundup describes 2.6 as preview, while the older Microsoft Learn deployment guide labels both as preview. Those statements do not establish a new GA milestone or a downgrade during this reporting week. For developers, the decision point is the actual deployment's current status, supported region, and applicable terms. I would confirm those before making a production recommendation. This is useful context about inconsistent public labels, not another ranked launch.

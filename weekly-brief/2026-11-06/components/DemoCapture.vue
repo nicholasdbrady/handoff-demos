@@ -7,7 +7,7 @@ type Manifest = {
   environment: Record<string, unknown>; assets: Asset[]; metrics: Record<string, unknown>
   live: { supported: boolean; command?: string; typical_seconds?: number }; caveats: string[]
 }
-const props = defineProps<{ slug: string; assetMatch?: string; onscreenCaveats?: string[] }>()
+const props = defineProps<{ slug: string; assetMatch?: string }>()
 const manifest = ref<Manifest>()
 const selected = ref(0)
 const captureError = ref('')
@@ -23,19 +23,30 @@ let interval: ReturnType<typeof setInterval> | undefined
 let alive = true
 let textRevision = 0
 const asset = computed(() => manifest.value?.assets[selected.value])
+const displayedText = computed(() => text.value.replace(
+  /\b\d{4}-\d{2}-\d{2}(?:T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2}))?\b/g,
+  value => new Date(value).toLocaleDateString('en-US', { timeZone: value.includes('T') ? 'America/Los_Angeles' : 'UTC', month: 'short', day: '2-digit' }),
+))
 const headlineMetrics = computed(() => Object.entries(manifest.value?.metrics ?? {}).filter(([, value]) => typeof value === 'number').slice(0, 4))
 const viewPending = computed(() => Boolean(props.assetMatch && manifest.value && manifest.value.status !== 'unavailable' && !manifest.value.assets.length))
 const htmlAsset = computed(() => asset.value?.kind === 'text' && /\.html?$/i.test(asset.value.path))
 const isolatedHtml = computed(() => {
   if (!htmlAsset.value || !text.value) return ''
   const policy = "<meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; script-src 'unsafe-inline' blob:; style-src 'unsafe-inline'; img-src data: blob:; connect-src 'none'; font-src data:; media-src data: blob:; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'\">"
-  return `${policy}${text.value}`
+  const document = new DOMParser().parseFromString(text.value, 'text/html')
+  if (props.slug === 'kimi-k3-1-pro-benchmark') {
+    document.querySelectorAll('.caption').forEach(node => node.remove())
+    document.querySelectorAll('p').forEach(node => {
+      if (/Three samples, not a leaderboard|Nov 9 catalog:|Reasoning tokens are already included/.test(node.textContent ?? '')) node.remove()
+    })
+  }
+  return `${policy}${document.documentElement.outerHTML}`
 })
 const captured = computed(() => {
   const timestamp = manifest.value?.captured_at
   if (!timestamp) return 'Capture time not supplied'
   const date = new Date(timestamp)
-  return Number.isNaN(date.valueOf()) ? timestamp : date.toLocaleString('en-US', { timeZone: 'America/Los_Angeles', timeZoneName: 'short' })
+  return Number.isNaN(date.valueOf()) ? 'Date unavailable' : date.toLocaleDateString('en-US', { timeZone: 'America/Los_Angeles', month: 'short', day: '2-digit' })
 })
 function assetUrl(path: string): string {
   const value = path.replaceAll('\\', '/').replace(/^\.?\//, '').replace(/^public\//, '')
@@ -183,8 +194,7 @@ onUnmounted(() => { alive = false; if (interval) clearInterval(interval) })
             <iframe v-else-if="htmlAsset && isolatedHtml" class="capture-artifact" :srcdoc="isolatedHtml"
               sandbox="allow-scripts" referrerpolicy="no-referrer" :title="asset.alt"
               allow="camera 'none'; microphone 'none'; geolocation 'none'; payment 'none'; clipboard-read 'none'; clipboard-write 'none'" />
-            <pre v-else class="capture-transcript" tabindex="0">{{ text || 'Loading captured text…' }}</pre>
-            <figcaption>{{ asset.caption }}</figcaption>
+            <pre v-else class="capture-transcript" tabindex="0">{{ displayedText || 'Loading captured text…' }}</pre>
             <p v-if="mediaError" role="alert" class="brief-error">{{ mediaError }}</p>
           </figure>
           <div v-else class="capture-empty">
@@ -194,9 +204,6 @@ onUnmounted(() => { alive = false; if (interval) clearInterval(interval) })
         </div>
         <aside class="capture-details">
           <h2>{{ manifest.title }}</h2>
-          <div class="demo-limits" aria-label="Demo limits">
-            <p v-for="caveat in props.onscreenCaveats" :key="caveat">{{ caveat }}</p>
-          </div>
         </aside>
       </div>
     </template>

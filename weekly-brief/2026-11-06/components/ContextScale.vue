@@ -80,6 +80,5 @@ const selectedReference = computed(() => references.find(reference => reference.
       </button>
       <span class="context-scale-selection">Selected reference: {{ selectedReference.label }}</span>
     </div>
-    <p class="context-scale-note">Illustrative reference scales, not a model specification.</p>
   </section>
 </template>

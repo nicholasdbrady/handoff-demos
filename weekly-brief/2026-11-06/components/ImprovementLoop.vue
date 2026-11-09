@@ -134,7 +134,6 @@ onUnmounted(() => {
           {{ reducedMotion ? 'Auto-play off · reduced motion' : `${playing ? 'Playing' : 'Paused'} · ${activeStage}` }}
         </span>
       </div>
-      <p class="loop-preview-copy">Learn from reviewed outcomes before changing the agent.</p>
     </footer>
   </section>
 </template>

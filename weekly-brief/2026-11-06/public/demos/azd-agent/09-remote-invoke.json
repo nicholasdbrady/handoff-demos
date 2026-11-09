@@ -1,0 +1,7 @@
+[
+  {
+    "cmd": "azd ai agent invoke \"Write a haiku about deploying cloud applications.\"",
+    "seconds": 16.011,
+    "output": "Agent:        handoff-azd-agent (remote)\r\nMessage:      \"Write a haiku about deploying cloud applications.\"\r\nSession:      (new -- server will assign)\r\nConversation: conv_07a96f5d9f1c59e100E1jdFFnU0ClVdtkCpt6KDc7crsK5cHLL\r\n\r\nSession:      575fe814e85d4a1739586dc3b45ec85714e2cedcd9c5f1622ac179fb3ac17b6 (assigned by server)\r\nTrace ID:     3285aec8f83fd538e5bc9110025636cc\r\nResponse:     caresp_07a96f5d9f1c59e100U9Plhnjx3yGs8KUnPrWgOYgCOLw25cx1\r\n[handoff-azd-agent] Clouds hum softly now  \r\nCode sails through the midnight sky  \r\nDeploy blooms at dawn\r\n\r\nClient elapsed: 13.014s\r\nPlatform latency (cold): response headers 10603 ms\r\n  preprocess 186 ms | infra 3447 ms | readiness 6031 ms | container 939 ms"
+  }
+]

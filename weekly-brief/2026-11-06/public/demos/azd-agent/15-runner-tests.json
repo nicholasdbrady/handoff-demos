@@ -1,0 +1,7 @@
+[
+  {
+    "seconds": 10.279,
+    "output": "test_completed_live_response (test_run.RunnerTests.test_completed_live_response) ... ok\r\ntest_empty_prompt_is_rejected (test_run.RunnerTests.test_empty_prompt_is_rejected) ... ok\r\ntest_missing_config_is_failure (test_run.RunnerTests.test_missing_config_is_failure) ... ok\r\ntest_stream_without_completion_is_failure (test_run.RunnerTests.test_stream_without_completion_is_failure) ... ok\r\ntest_untrusted_endpoint_is_rejected (test_run.RunnerTests.test_untrusted_endpoint_is_rejected) ... ok\r\n\r\n----------------------------------------------------------------------\r\nRan 5 tests in 0.021s\r\n\r\nOK",
+    "cmd": "uv run --with \"azure-ai-projects>=2.4.0,<3\" --with \"azure-identity>=1.25.0,<2\" --with \"python-dotenv>=1.2.0,<2\" python -m unittest discover -s demos/azd-agent -p test_run.py -v"
+  }
+]

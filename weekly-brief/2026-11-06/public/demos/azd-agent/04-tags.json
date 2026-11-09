@@ -1,0 +1,7 @@
+[
+  {
+    "cmd": "$resources=az resource list -g rg-handoff-azd-20261109 -o json | ConvertFrom-Json; az group update -n rg-handoff-azd-20261109 --tags handoff=2026-11-09 azd-env-name=handoff-azd-1109 --query \"{name:name,tags:tags}\" -o json; foreach($r in $resources){az tag update --resource-id $r.id --operation Merge --tags handoff=2026-11-09 --query properties.tags -o json}",
+    "output": "{\r\n  \"name\": \"rg-handoff-azd-20261109\",\r\n  \"tags\": {\r\n    \"azd-env-name\": \"handoff-azd-1109\",\r\n    \"handoff\": \"2026-11-09\"\r\n  }\r\n}\r\n{\r\n  \"azd-env-name\": \"handoff-azd-1109\",\r\n  \"handoff\": \"2026-11-09\"\r\n}\r\n{\r\n  \"handoff\": \"2026-11-09\"\r\n}",
+    "seconds": 60.872
+  }
+]

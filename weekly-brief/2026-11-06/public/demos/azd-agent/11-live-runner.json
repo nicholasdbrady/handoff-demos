@@ -1,0 +1,7 @@
+[
+  {
+    "cmd": "uv run demos/azd-agent/run.py --json",
+    "seconds": 6.59,
+    "output": "{\"ok\": false, \"prompt\": \"Write a haiku about deploying cloud applications.\", \"output_text\": \"\", \"latency_ms\": 3266, \"agent\": \"handoff-azd-agent\", \"endpoint_host\": \"cog-mvrbqcz5lwi26.services.ai.azure.com\", \"error\": \"BadRequestError: Error code: 400 - Hosted agents can only be called through the agent endpoint: https://<account>.services.ai.azure.com/api/projects/<project>/agents/<agentName>/endpoint/protocols/openai/responses [Request ID: b73e818ed2fce5d2d64403fa13bc4f6f]\"}"
+  }
+]

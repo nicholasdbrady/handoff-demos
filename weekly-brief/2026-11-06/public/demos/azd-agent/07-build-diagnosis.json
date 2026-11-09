@@ -1,0 +1,7 @@
+[
+  {
+    "seconds": 1.895,
+    "output": "ERROR: agent name could not be resolved from azd environment for service 'handoff-azd-agent'\r\n\r\nRun 'azd deploy' first to deploy the agent, or check your azd environment values",
+    "cmd": "azd ai agent monitor --type system"
+  }
+]

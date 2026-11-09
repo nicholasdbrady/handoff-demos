@@ -1,0 +1,7 @@
+[
+  {
+    "seconds": 15.608,
+    "output": "{\"ok\": true, \"prompt\": \"Write a haiku about deploying cloud applications.\", \"output_text\": \"Clouds roll into code  \\nDeployments bloom in moonlit skies  \\nServers hum softly\", \"latency_ms\": 11921, \"agent\": \"handoff-azd-agent\", \"endpoint_host\": \"cog-mvrbqcz5lwi26.services.ai.azure.com\"}",
+    "cmd": "uv run demos/azd-agent/run.py --json"
+  }
+]

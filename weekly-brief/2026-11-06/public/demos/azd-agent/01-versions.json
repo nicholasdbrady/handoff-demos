@@ -1,0 +1,7 @@
+[
+  {
+    "output": "azd version 1.38.0-beta.1-daily.7005316 (commit 41ad307cd5ceb22a97a78322add237aff9932ffb) (daily)\r\nVersion: 1.0.0\r\nCommit: 6e7ee1892577f2696865a1f6e15d85943562627e\r\nBuild Date: 2026-11-05T09:08:39.7938378+00:00\r\nazure.ai.inspector 1.0.0\r\nazure.ai.projects 1.0.0\r\nuv 0.12.0 (b88d7c5c4 2026-07-28 x86_64-pc-windows-msvc)",
+    "cmd": "azd version; azd ai agent version; azd ai inspector version; azd ai project version; uv --version",
+    "seconds": 5.028
+  }
+]

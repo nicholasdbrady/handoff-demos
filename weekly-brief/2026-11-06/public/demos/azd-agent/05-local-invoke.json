@@ -1,0 +1,7 @@
+[
+  {
+    "seconds": 22.392,
+    "output": "Target:       localhost:8098 (local)\r\nMessage:      \"Write a haiku about deploying cloud applications.\"\r\nSession:      <redacted-id>\r\nConversation: <redacted-id>\r\n\r\n[local] Clouds hum into code  \r\nDeployments bloom in blue skies  \r\nServers drift softly\r\n\r\nClient elapsed: 19.962s",
+    "cmd": "azd ai agent invoke --local --port 8098 \"Write a haiku about deploying cloud applications.\""
+  }
+]

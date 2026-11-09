@@ -1,0 +1,92 @@
+{
+  "slug": "azd-agent",
+  "title": "From code to hosted agent: Microsoft Foundry azd 1.0",
+  "status": "ready",
+  "captured_at": "2026-11-09T01:03:36-08:00",
+  "environment": {
+    "region": "northcentralus",
+    "deployments": [
+      {"model": "gpt-5.4-mini", "version": "2026-03-17", "deployment": "gpt-5.4-mini", "sku": "GlobalStandard", "capacity": 10}
+    ],
+    "models": ["gpt-5.4-mini"],
+    "tool_versions": {
+      "azd": "1.38.0-beta.1-daily.7005316",
+      "microsoft.foundry": "1.0.0",
+      "azure.ai.agents": "1.0.0",
+      "azure.ai.projects": "1.0.0",
+      "azure.ai.inspector": "1.0.0",
+      "uv": "0.12.0",
+      "local_python": "3.14.4",
+      "hosted_runtime": "python_3_13",
+      "browser": "Microsoft Edge 158",
+      "sample_agent_framework_core": "1.17.0",
+      "sample_agent_framework_foundry_hosting": "1.0.0b260821"
+    }
+  },
+  "assets": [
+    {
+      "path": "/demos/azd-agent/inspector-local.png",
+      "kind": "image",
+      "caption": "Real completed local Agent Inspector request in Microsoft Edge; 396.8 seconds is this run's measured latency.",
+      "alt": "Agent Inspector connected to localhost port 8098, showing a three-line cloud deployment haiku, 52 tokens, and a completed model run."
+    },
+    {
+      "path": "/demos/azd-agent/invocation.json",
+      "kind": "json",
+      "caption": "Real completed run.py invocation against hosted agent version 2.",
+      "alt": "Successful invocation object with the cloud haiku, agent name, endpoint host, and 12373 milliseconds elapsed."
+    },
+    {
+      "path": "/demos/azd-agent/transcript.json",
+      "kind": "transcript",
+      "caption": "Timed real commands: init, config review, provision, local test, failed build, successful retry, remote invocation and GA release notes.",
+      "alt": "An ordered JSON array of redacted commands, actual output, and elapsed seconds; failed attempts are preserved."
+    },
+    {
+      "path": "/demos/azd-agent/reviewed-azure.yaml",
+      "kind": "text",
+      "caption": "The actual reviewed azure.yaml used for the successful code deployment.",
+      "alt": "Foundry project and gpt-5.4-mini deployment; hosted Python agent with remote build, Responses 2.0, 0.5 CPU, and 1 GiB memory."
+    },
+    {
+      "path": "/demos/azd-agent/walkthrough.json",
+      "kind": "json",
+      "caption": "Source-grounded configuration review and the observed walkthrough sequence.",
+      "alt": "Fields to explain in azure.yaml, observed steps, and features not exercised."
+    },
+    {
+      "path": "/demos/azd-agent/what-changed.json",
+      "kind": "json",
+      "caption": "First-party 1.0 release evidence, not a runtime registry/RBAC experiment.",
+      "alt": "Bare-image registry provisioning migration and the opt-in developer RBAC warning flag."
+    }
+  ],
+  "metrics": {
+    "initialization_seconds": 7.02,
+    "provision_command_seconds": 76.05,
+    "local_cli_command_seconds": 22.39,
+    "inspector_request_seconds": 396.8,
+    "inspector_total_tokens": 52,
+    "successful_deploy_command_seconds": 55.44,
+    "remote_cli_client_seconds": 13.014,
+    "live_runner_latency_ms": 12373,
+    "active_agent_version": "2",
+    "failed_build_attempts": 1
+  },
+  "live": {
+    "supported": true,
+    "command": "uv run demos/azd-agent/run.py --json",
+    "typical_seconds": 15
+  },
+  "caveats": [
+    "Live command working directory is weekly-brief/2026-11-06. Configure AZD_AGENT_PROJECT_ENDPOINT and AZD_AGENT_NAME in demos/azd-agent/.env and sign in to Azure CLI with Foundry access.",
+    "The completed Inspector capture took 396.8 seconds. Use this recorded image for the show; do not present its latency as typical.",
+    "Corporate-network PyPI TLS downloads failed. Local restoration used the approved package proxy, but the remote build needed the original public PyPI lockfile. Both failed and successful deployments are preserved.",
+    "The hosted agent requires its direct agent endpoint, not project-level agent_reference invocation. run.py uses the correct route and fails rather than replaying data.",
+    "Resources and model calls incur Azure charges. The new tagged resource group and hosted agent remain running for the show.",
+    "Registry and RBAC-warning changes are verified from GA release notes, not deliberately exercised against extra infrastructure.",
+    "The sample service key was aligned with its generated agent name, and requiredVersions were raised to GA minimums.",
+    "No evaluation suite, CI/CD pipeline, or resilience test is included in this bounded demo.",
+    "typical_seconds is a show-planning estimate from two successful remote calls, not a service latency guarantee."
+  ]
+}

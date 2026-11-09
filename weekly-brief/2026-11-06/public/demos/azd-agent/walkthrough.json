@@ -1,0 +1,17 @@
+{
+  "title": "From reviewed source to a Microsoft Foundry hosted agent",
+  "source": "https://devblogs.microsoft.com/foundry/microsoft-foundry-azure-developer-cli-ga/",
+  "announcement_date": "2026-11-05",
+  "configuration_review": [
+    {"field": "services.ai-project.deployments", "review": "Model name, pinned model version, SKU, and quota capacity"},
+    {"field": "services.handoff-azd-agent.project", "review": "Source directory packaged for deployment"},
+    {"field": "codeConfiguration", "review": "Python 3.13, main.py, remote dependency build"},
+    {"field": "uses: [ai-project]", "review": "Agent dependency on the provisioned Foundry project"},
+    {"field": "protocols", "review": "Responses protocol version 2.0.0"},
+    {"field": "container.resources", "review": "0.5 CPU and 1 GiB memory"},
+    {"field": "env", "review": "Model deployment reference; no committed credentials"}
+  ],
+  "observed_sequence": ["init", "review azure.yaml", "provision new resources", "local CLI invocation", "Agent Inspector in Edge", "deploy version 1 failed dependency build", "restore official public PyPI lock", "deploy version 2 active", "invoke remote agent", "invoke portable run.py"],
+  "not_exercised": ["evaluation suite", "CI/CD pipeline", "bare image provisioning", "deliberately denied RBAC", "resilience"],
+  "presenter_note": "Use the recorded Inspector image: that browser request took 396.8 seconds. The successful portable runner took about 12 seconds."
+}

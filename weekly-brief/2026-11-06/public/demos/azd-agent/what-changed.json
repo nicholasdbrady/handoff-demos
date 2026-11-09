@@ -1,0 +1,19 @@
+{
+  "version": "azure.ai.agents 1.0.0",
+  "released": "2026-11-05",
+  "source": "https://github.com/Azure/azure-dev/blob/main/cli/azd/extensions/azure.ai.agents/CHANGELOG.md",
+  "evidence_kind": "first-party-release-notes",
+  "runtime_tested": false,
+  "changes": [
+    {
+      "claim": "A bare image no longer suppresses registry creation.",
+      "action": "For a prebuilt image, use docker.imagePassthrough: true or AZD_AGENT_SKIP_ACR=true with a nonempty image.",
+      "reference": "https://github.com/Azure/azure-dev/pull/10792"
+    },
+    {
+      "claim": "Final and JSON developer RBAC warnings are opt-in; role checks and automatic assignment remain enabled.",
+      "action": "Set AZD_ALPHA_ENABLE_AGENTS_RBAC_WARNINGS=true when retained warnings are required.",
+      "reference": "https://github.com/Azure/azure-dev/pull/10813"
+    }
+  ]
+}

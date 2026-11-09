@@ -1,0 +1,7 @@
+[
+  {
+    "output": "Provisioning Azure resources (azd provision)\r\nProvisioning Azure resources can take some time.\r\n\r\nReading subscription and location from environment...\r\nSubscription: foundry-devx-sub (nbrady) (<redacted-id>)\r\nLocation: North Central US\r\n\r\nPreparing Foundry provisioning template...\r\nStarting ARM deployment \"azd-foundry-handoff-azd-1109-9a9263e5\"...\r\nFoundry deployment in progress\r\nFoundry deployment complete\r\n\r\nSUCCESS: Your application was provisioned in Azure in 1 minute 12 seconds.\r\nYou can view the resources created under the resource group rg-handoff-azd-20261109 in Azure Portal:\r\nhttps://portal.azure.com/#@/resource/subscriptions/<redacted-id>/resourceGroups/rg-handoff-azd-20261109/overview",
+    "cmd": "azd provision --no-prompt",
+    "seconds": 76.046
+  }
+]

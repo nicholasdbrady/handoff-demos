@@ -1,0 +1,7 @@
+[
+  {
+    "seconds": 6.145,
+    "output": "[\r\n  {\r\n    \"location\": \"northcentralus\",\r\n    \"name\": \"cog-mvrbqcz5lwi26\",\r\n    \"tags\": {\r\n      \"azd-env-name\": \"handoff-azd-1109\",\r\n      \"handoff\": \"2026-11-09\"\r\n    },\r\n    \"type\": \"Microsoft.CognitiveServices/accounts\"\r\n  },\r\n  {\r\n    \"location\": \"northcentralus\",\r\n    \"name\": \"cog-mvrbqcz5lwi26/handoff-azd-project\",\r\n    \"tags\": {\r\n      \"handoff\": \"2026-11-09\"\r\n    },\r\n    \"type\": \"Microsoft.CognitiveServices/accounts/projects\"\r\n  }\r\n]\r\n[\r\n  {\r\n    \"model\": {\r\n      \"callRateLimit\": null,\r\n      \"format\": \"OpenAI\",\r\n      \"name\": \"gpt-5.4-mini\",\r\n      \"publisher\": null,\r\n      \"source\": null,\r\n      \"sourceAccount\": null,\r\n      \"version\": \"2026-03-17\"\r\n    },\r\n    \"name\": \"gpt-5.4-mini\",\r\n    \"sku\": {\r\n      \"capacity\": 10,\r\n      \"family\": null,\r\n      \"name\": \"GlobalStandard\",\r\n      \"size\": null,\r\n      \"tier\": null\r\n    }\r\n  }\r\n]",
+    "cmd": "az resource list -g rg-handoff-azd-20261109 --query \"[].{name:name,type:type,location:location,tags:tags}\" -o json; az cognitiveservices account deployment list -g rg-handoff-azd-20261109 -n cog-mvrbqcz5lwi26 --query \"[].{name:name,model:properties.model,sku:sku}\" -o json"
+  }
+]

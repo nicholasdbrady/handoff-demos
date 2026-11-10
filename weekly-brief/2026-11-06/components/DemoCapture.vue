@@ -28,9 +28,9 @@ const promptChoices = computed(() => {
   const assets = manifest.value?.assets ?? []
   return assets.length > 1 && assets.every(item => item.kind === 'video' && item.prompt) ? assets : []
 })
-function choose(index: number, event?: Event) {
-  // Return focus to the deck so arrow keys and presentation clickers keep navigating.
-  (event?.currentTarget as HTMLElement | undefined)?.blur()
+function choose(index: number, event: MouseEvent) {
+  // Pointer users can advance with a clicker; keyboard users retain their place.
+  if (event.detail > 0 && event.currentTarget instanceof HTMLElement) event.currentTarget.blur()
   if (index === selected.value) return
   player.value?.pause()
   selected.value = index

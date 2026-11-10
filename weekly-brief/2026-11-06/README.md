@@ -52,7 +52,7 @@ Framework app; or `KIMI_ENDPOINT`, `KIMI_DEPLOYMENT`, and `KIMI_AUTH=cli` for
 the sculpture. Sign in with `az login` and ensure inference access. Set
 `SLIDEV_ENABLE_LIVE=1` only after configuration. fal also needs the
 `Fal.EnableDeploy` registration, accepted fal terms, deployments, and confirmed
-per-second prices; the fal slide shows its captured clip and has no live button.
+per-second prices; the fal slide shows captured clips and has no live button.
 
 The adapter loads `.env` on the server and passes those values to its fixed
 runner subprocesses. Shell values take precedence. No keys or tokens enter
@@ -72,9 +72,12 @@ loopback adapter with `X-Demo-Client: slidev` → fixed demo runner →
 JSON live result or explicit error.
 
 Foundry Local has no live demo on this hardware. fal access is enabled and all
-five portfolio models are deployed in East US 2; one 5 s, 480P MiniMax H3 Max
-Turbo clip was generated. The other four models have no output, so the deck
-draws no cross-model speed, quality, or cost conclusion.
+five portfolio models are deployed in East US 2. The deck shows one generated
+clip per model, with its exact prompt and a poster. Select a model to switch
+clips; switching or leaving the slide pauses playback. The five prompts differ,
+so the clips are not a controlled comparison of speed, quality, or cost. The
+[fal demo README](demos/fal-video/README.md) records prompt misses, audio
+limitations, and the estimated cost.
 
 ```powershell
 npm run build
@@ -82,6 +85,8 @@ npm run typecheck
 uv run --with python-dotenv --no-project python -m unittest test_demo_server -q
 uv run --with playwright --index-url https://packagefeedproxy.microsoft.io/pypi/simple `
   --no-project python test_browser.py --output <session-capture-folder>
+uv run --with playwright --index-url https://packagefeedproxy.microsoft.io/pypi/simple `
+  --no-project python test_fal_clips.py --output <fal-capture-folder>
 ```
 
 Browser checks use Microsoft Edge, inspect every slide in both themes at both
@@ -114,7 +119,7 @@ isolated display only; its captured HTML and data remain unchanged.
 | 17 | Exact-cutoff exclusions | Publication boundary |
 | 18–19 | Code to hosted agent conversation | Actual recorded Inspector + hosted run; optional live invocation |
 | 20 | Local coding conversation | Hardware walkthrough; no live run |
-| 21–22 | Video model-choice conversation | Captured H3 Max Turbo clip with exact prompt; other four models not generated |
+| 21–22 | Video model-choice conversation | Five captured clips with model selector and exact prompts |
 | 23–24 | MAI lifecycle conflict and coverage context | Dated source comparison |
 | 25 | Close | Developer workflow synthesis |
 

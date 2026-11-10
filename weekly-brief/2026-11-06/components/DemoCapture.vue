@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, onUnmounted, ref, watch } from 'vue'
 
 type Asset = { path: string; kind: 'video' | 'image' | 'json' | 'text' | 'transcript'; caption: string; alt: string; poster?: string; prompt?: string; modelName?: string; label?: string }
 type Manifest = {
@@ -86,6 +86,10 @@ function parseManifest(value: unknown): Manifest {
     assetUrl(item.path)
     if (item.poster !== undefined && typeof item.poster !== 'string') throw new Error('Capture poster must be a path.')
     if (item.prompt !== undefined && typeof item.prompt !== 'string') throw new Error('Capture prompt must be text.')
+    if (item.model_name !== undefined && (typeof item.model_name !== 'string' || !item.model_name.trim()))
+      throw new Error('Capture model name must be nonempty text.')
+    if (item.label !== undefined && (typeof item.label !== 'string' || !item.label.trim()))
+      throw new Error('Capture label must be nonempty text.')
     if (item.poster) assetUrl(item.poster)
     assets.push({ path: item.path, kind: item.kind, caption: item.caption, alt: item.alt, poster: item.poster, prompt: item.prompt,
       modelName: typeof item.model_name === 'string' ? item.model_name : undefined, label: typeof item.label === 'string' ? item.label : undefined })
@@ -162,16 +166,26 @@ watch(asset, loadText)
 const root = ref<HTMLElement>()
 const leaveObserver = typeof IntersectionObserver === 'undefined' ? undefined
   : new IntersectionObserver(entries => { if (entries.some(entry => !entry.isIntersecting)) player.value?.pause() })
+const transitionObserver = typeof MutationObserver === 'undefined' ? undefined : new MutationObserver(entries => {
+  for (const entry of entries) {
+    if (entry.target instanceof Element && Array.from(entry.target.classList).some(name => name.endsWith('-leave-active')))
+      player.value?.pause()
+  }
+})
 watch(root, element => { if (element) leaveObserver?.observe(element) })
 onMounted(async () => {
+  const slide = root.value?.closest('.slidev-page')
+  if (slide) transitionObserver?.observe(slide, { attributes: true, attributeFilter: ['class'] })
   await refresh()
   interval = setInterval(refresh, 30_000)
+  if (props.noLive) return
   try {
     const response = await fetch('/demo-api/health', { headers: { 'X-Demo-Client': 'slidev' } })
     if (response.ok) liveEnabled.value = (await response.json()).live_enabled === true
   } catch { liveError.value = 'Local adapter is unavailable. Start demo_server.py to run live.' }
 })
-onUnmounted(() => { alive = false; leaveObserver?.disconnect(); if (interval) clearInterval(interval) })
+onBeforeUnmount(() => player.value?.pause())
+onUnmounted(() => { alive = false; leaveObserver?.disconnect(); transitionObserver?.disconnect(); if (interval) clearInterval(interval) })
 </script>
 
 <template>
@@ -179,6 +193,7 @@ onUnmounted(() => { alive = false; leaveObserver?.disconnect(); if (interval) cl
     <div class="capture-toolbar">
       <span class="badge">{{ viewPending ? 'Pending capture' : manifest?.status ?? (loading ? 'Loading capture' : 'Pending capture') }}</span>
       <span class="capture-time">{{ manifest && !viewPending ? `Captured ${captured}` : 'Waiting for this example’s capture' }}</span>
+      <span v-if="promptChoices.length && clipLabel" class="capture-origin">{{ clipLabel }}</span>
       <button class="brief-button brief-secondary" @click="refresh">Refresh capture</button>
       <button v-if="manifest?.live.supported && !viewPending && !noLive" class="brief-button" :disabled="running || !liveEnabled" @click="runLive">
         {{ running ? 'Running live…' : 'Run live' }}
@@ -199,7 +214,7 @@ onUnmounted(() => { alive = false; leaveObserver?.disconnect(); if (interval) cl
       <p>The explanation stays available. This panel will show real evidence when the demo lands.</p>
     </div>
     <template v-else>
-      <div class="capture-body" :class="{ 'capture-prompted': asset?.prompt }">
+      <div class="capture-body" :class="{ 'capture-prompted': asset?.prompt, 'capture-multi': promptChoices.length }">
         <div class="capture-media">
           <div v-if="promptChoices.length" class="capture-models" role="group" aria-label="Choose a model clip">
             <button v-for="(item, index) in promptChoices" :key="item.path" type="button" class="brief-button brief-secondary"
@@ -230,8 +245,8 @@ onUnmounted(() => { alive = false; leaveObserver?.disconnect(); if (interval) cl
         </div>
         <aside class="capture-details">
           <template v-if="asset?.prompt">
-            <p v-if="asset.label ?? (promptChoices.length ? '' : clipLabel)" class="capture-clip-label">{{ asset.label ?? clipLabel }}</p>
-            <h2>Prompt</h2>
+            <p v-if="!promptChoices.length && (asset.label ?? clipLabel)" class="capture-clip-label">{{ asset.label ?? clipLabel }}</p>
+            <h2>Prompt<span v-if="promptChoices.length && asset.label" class="capture-scene"> · {{ asset.label }}</span></h2>
             <blockquote class="capture-prompt">{{ asset.prompt }}</blockquote>
           </template>
           <h2 v-else>{{ manifest.title }}</h2>

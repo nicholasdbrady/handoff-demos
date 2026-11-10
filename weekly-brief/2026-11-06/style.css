@@ -73,6 +73,9 @@
 .capture-models .brief-button { padding: 6px 12px; font-size: 16px; }
 .capture-models .brief-button[aria-pressed="true"] { border-color: var(--accent); color: var(--accent-strong); box-shadow: inset 0 -2px 0 var(--accent); }
 .capture-prompted:has(.capture-models) .capture-media :is(img, video) { max-height: 300px; }
+.capture-body.capture-prompted.capture-multi { grid-template-columns: minmax(0, .75fr) minmax(0, 1.25fr); height: 520px; }
+.slidev-layout .capture-multi .capture-prompt { line-height: 1.2; }
+.capture-origin, .capture-scene { color: var(--ink-soft); font: 16px var(--font-mono); }
 .kimi-comparison { position: relative; }
 .kimi-stage { display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr); gap: 28px; }
 .kimi-efforts { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }

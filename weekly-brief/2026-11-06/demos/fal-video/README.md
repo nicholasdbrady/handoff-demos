@@ -75,11 +75,15 @@ What frames show (8- and 18-frame contact sheets, scene-cut detection):
 Audio on the LTX and MiniMax clips is present and non-silent by ffmpeg
 measurement but **not aurally assessed**; no sync claim is made.
 
-The LTX and MiniMax MP4s are byte-identical downloads. The Kling original
-(19.09 MB) exceeds the 15 MB per-clip budget, so the published file is an H.264
-re-encode (`libx264 -preset slow -crf 20 -movflags +faststart`, same
-1080p/24 fps/121 frames, 4.02 MB, SSIM 0.989). Original SHA-256 values are in
-`evidence.json`. Posters are the frame at 80% of each clip's duration (fixed
+All five published MP4s are byte-identical original downloads; SHA-256 values
+are in `evidence.json`. The Kling original (19.09 MB) exceeds the 15 MB
+per-clip web budget, so an optional derivative is also published:
+`kling-v3-pro-glass-tide.web.mp4`, an H.264 re-encode of the same clip
+(`libx264 -preset slow -crf 20 -movflags +faststart`, same 1080p/24 fps/121
+frames, 4.21 MB, SSIM 0.989). It is not a separate generation. If the deck uses
+it, label it as a re-encode of the Kling output.
+
+Posters are the frame at 80% of each clip's duration (fixed
 rule, not hand-picked). Azure Monitor `FoundryModelEstimatedCost` was still
 empty after the runs; no invoice yet.
 
@@ -242,10 +246,12 @@ Under `public/demos/fal-video/`:
 
 - `minimax-h3-max-turbo-smoke.mp4` (2.04 MB) and `.png` poster (2.5 s frame):
   real model output.
-- `kling-v3-pro-glass-tide.mp4` (4.02 MB re-encode), `ltx-2.5-fast-marble-music.mp4`
+- `kling-v3-pro-glass-tide.mp4` (19.09 MB original), `ltx-2.5-fast-marble-music.mp4`
   (3.43 MB), `ltx-2.5-pro-paper-city.mp4` (4.27 MB),
   `minimax-h3-max-clockwork-bloom.mp4` (1.69 MB), each with a `.png` poster:
-  real model output. Videos total about 15.4 MB.
+  real model output, unmodified. The five originals total about 30.5 MB.
+- `kling-v3-pro-glass-tide.web.mp4` (4.21 MB): optional re-encoded derivative of
+  the Kling original, listed as `derivative` on the Kling asset in the manifest.
 - `comparison.svg`: 1280x480 authored infographic, **not** model output.
   Handoff navy/cobalt, IBM Plex Sans (Segoe UI fallback), text >= 24px.
 - `manifest.json`, `evidence.json`.

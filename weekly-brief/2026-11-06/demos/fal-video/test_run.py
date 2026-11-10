@@ -1,6 +1,7 @@
 """Offline contract tests; no Azure authentication or paid generation."""
 
 import contextlib
+import hashlib
 import importlib.util
 import io
 import json
@@ -181,10 +182,21 @@ class RunnerTests(unittest.TestCase):
         videos = [asset for asset in manifest["assets"] if asset["kind"] == "video"]
         self.assertEqual([asset["model"] for asset in videos], [
             "minimax-h3-max-turbo", "kling-v3-pro", "ltx-2.5-fast", "ltx-2.5-pro", "minimax-h3-max"])
+        originals = {r["model"]: r.get("sha256_original", r.get("sha256"))
+                     for r in evidence["measured_generation_results"]}
         for video in videos:
             self.assertTrue(video["prompt"] and video["title"] and video["poster"])
             self.assertTrue((RUN.ROOT / "public" / video["poster"].lstrip("/")).is_file())
-            self.assertLessEqual(video["metrics"]["file_mb"], 15)
+            path = RUN.ROOT / "public" / video["path"].lstrip("/")
+            digest = hashlib.sha256(path.read_bytes()).hexdigest().upper()
+            self.assertEqual(digest, originals[video["model"]])
+            self.assertTrue(video["byte_identical_to_original"])
+            derivative = video.get("derivative")
+            if derivative:
+                self.assertLessEqual(derivative["file_mb"], 15)
+                derived = RUN.ROOT / "public" / derivative["path"].lstrip("/")
+                self.assertEqual(hashlib.sha256(derived.read_bytes()).hexdigest().upper(),
+                                 derivative["sha256"])
         self.assertLessEqual(sum(v["metrics"]["file_mb"] for v in videos), 40)
         self.assertLessEqual(manifest["metrics"]["generation_spend_usd_estimate_creative_clips"], 2.25)
         for asset in manifest["assets"]:

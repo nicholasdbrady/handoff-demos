@@ -254,11 +254,9 @@
       "sha256_original": "B75BC7995A64BB6945DC48A061C1A7694A8A9A35FFF714E35B9ADE89011C1123",
       "published": {
         "path": "/demos/fal-video/kling-v3-pro-glass-tide.mp4",
-        "sha256": "4775A97ACB8EC82A967BD8665663660E28C3FB38E78304415082BF7E35BE2863",
-        "byte_identical_to_original": false,
-        "transcode": "libx264 -preset slow -crf 20 -profile:v high -pix_fmt yuv420p -movflags +faststart -an; same 1920x1080, 24 fps, 121 frames. Reason: 19.09 MB original exceeds the 15 MB per-clip budget. SSIM vs original 0.9888.",
-        "size_bytes": 4214401,
-        "bit_rate": 6684757
+        "sha256": "B75BC7995A64BB6945DC48A061C1A7694A8A9A35FFF714E35B9ADE89011C1123",
+        "byte_identical_to_original": true,
+        "size_bytes": 19088920
       },
       "inspection": {
         "method": "8- and 18-frame contact sheets, ffmpeg scene-change detection, poster frame at 80% of duration",
@@ -276,7 +274,16 @@
         ]
       },
       "est_cost_usd": 0.616,
-      "est_cost_basis": "requested 5 s x 0.1232 USD/s (launch table, audio off; no Azure retail meter is listed for Kling)"
+      "est_cost_basis": "requested 5 s x 0.1232 USD/s (launch table, audio off; no Azure retail meter is listed for Kling)",
+      "derivative": {
+        "path": "/demos/fal-video/kling-v3-pro-glass-tide.web.mp4",
+        "sha256": "4775A97ACB8EC82A967BD8665663660E28C3FB38E78304415082BF7E35BE2863",
+        "byte_identical_to_original": false,
+        "transcode": "libx264 -preset slow -crf 20 -profile:v high -pix_fmt yuv420p -movflags +faststart -an; same 1920x1080, 24 fps, 121 frames; SSIM vs original 0.9888.",
+        "reason": "Optional web-size copy; the 19.09 MB original exceeds the 15 MB per-clip budget.",
+        "size_bytes": 4214401,
+        "bit_rate": 6684757
+      }
     },
     {
       "model": "ltx-2.5-fast",

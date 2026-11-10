@@ -4,7 +4,10 @@
     "announcement": "https://techcommunity.microsoft.com/blog/azure-ai-foundry-blog/building-the-next-generation-of-multimodal-ai-experiences-with-fal-in-microsoft-/4570032",
     "learn": "https://learn.microsoft.com/azure/foundry/how-to/fal-ai-models/enable-fal-models",
     "catalog": "https://ai.azure.com",
-    "kling_schema": "https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=fal-ai/kling-video/v3/pro/text-to-video"
+    "kling_schema": "https://fal.ai/api/openapi/queue/openapi.json?endpoint_id=fal-ai/kling-video/v3/pro/text-to-video",
+    "fal_kling_prompting_guide": "https://blog.fal.ai/kling-3-0-prompting-guide/",
+    "fal_ltx_guide": "https://fal.ai/learn/tools/how-to-use-ltx-2-5",
+    "fal_minimax_h3_max_guide": "https://fal.ai/learn/tools/how-to-use-minimax-h3-max"
   },
   "observed_access": {
     "history": [
@@ -209,6 +212,274 @@
       },
       "est_cost_usd": 0.125,
       "est_cost_basis": "requested 5 s x 0.025 USD/s"
+    },
+    {
+      "model": "kling-v3-pro",
+      "deployment": "fal-kling-v3-pro",
+      "region": "eastus2",
+      "route": "/providers/falai/v1/kling/v3/pro/text-to-video",
+      "title": "Glass tide",
+      "showcase": "Continuous subject and camera motion in one take (audio off).",
+      "prompt_guidance": "https://blog.fal.ai/kling-3-0-prompting-guide/",
+      "request": {
+        "prompt": "A translucent sea-glass manta ray, with delicate cobalt veins through its broad wings, glides through a flooded Art Deco observatory. A low side-tracking camera keeps the same manta ray centered in a medium-wide shot as its wings undulate slowly. The manta ray passes through one circular brass doorway; the camera follows smoothly through the doorway and reveals an enormous sunlit window overlooking a submerged city. Shafts of amber sunlight ripple across the glass wings and green tiled floor; tiny bubbles trail behind it. One continuous cinematic shot, graceful motion, clearly readable silhouette, no cuts, no text, no logos.",
+        "duration": "5",
+        "aspect_ratio": "16:9",
+        "generate_audio": false
+      },
+      "request_id": "06f64fca-2ef2-4fcc-a677-2630af739e72",
+      "submitted_at": "2026-11-09T15:50:59-0800",
+      "command_started_at": "2026-11-09T15:50:57-08:00",
+      "command_completed_at": "2026-11-09T15:54:32-08:00",
+      "seconds_end_to_end": 213.058,
+      "submissions": 1,
+      "ffprobe_original": {
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration_s": 5.041667,
+        "size_bytes": 19088920,
+        "bit_rate": 30289854,
+        "video": {
+          "codec": "h264",
+          "profile": "Constrained Baseline",
+          "width": 1920,
+          "height": 1080,
+          "pix_fmt": "yuv420p",
+          "fps": "24/1",
+          "frames": 121,
+          "duration_s": 5.041667
+        },
+        "audio": null
+      },
+      "audio_assessment": "No audio track (requested generate_audio=false).",
+      "sha256_original": "B75BC7995A64BB6945DC48A061C1A7694A8A9A35FFF714E35B9ADE89011C1123",
+      "published": {
+        "path": "/demos/fal-video/kling-v3-pro-glass-tide.mp4",
+        "sha256": "4775A97ACB8EC82A967BD8665663660E28C3FB38E78304415082BF7E35BE2863",
+        "byte_identical_to_original": false,
+        "transcode": "libx264 -preset slow -crf 20 -profile:v high -pix_fmt yuv420p -movflags +faststart -an; same 1920x1080, 24 fps, 121 frames. Reason: 19.09 MB original exceeds the 15 MB per-clip budget. SSIM vs original 0.9888.",
+        "size_bytes": 4214401,
+        "bit_rate": 6684757
+      },
+      "inspection": {
+        "method": "8- and 18-frame contact sheets, ffmpeg scene-change detection, poster frame at 80% of duration",
+        "visible": [
+          "Translucent glass manta ray with cobalt veins stays the readable subject throughout",
+          "Art Deco stepped wall, green tiled floor and a circular brass doorway",
+          "Camera moves through the doorway and reveals a large window over a city skyline",
+          "Sunlight patches on the floor; one continuous shot (no cut detected)"
+        ],
+        "missed_or_unverified": [
+          "Room does not read clearly as flooded or submerged; the city looks like an above-water skyline",
+          "Trailing bubbles are not clearly visible",
+          "Camera reads as a mostly frontal follow, not a low side-tracking shot",
+          "Manta wing shape stretches and thins as it moves"
+        ]
+      },
+      "est_cost_usd": 0.616,
+      "est_cost_basis": "requested 5 s x 0.1232 USD/s (launch table, audio off; no Azure retail meter is listed for Kling)"
+    },
+    {
+      "model": "ltx-2.5-fast",
+      "deployment": "fal-ltx-2-5-fast",
+      "region": "eastus2",
+      "route": "/providers/falai/v1/lightricks/ltx-2.5/text-to-video/fast",
+      "title": "Marble music",
+      "showcase": "Kinetic action with native generated audio.",
+      "prompt_guidance": "https://fal.ai/learn/tools/how-to-use-ltx-2-5",
+      "request": {
+        "prompt": "A macro tracking shot follows one bright copper marble rolling down a curved walnut track inside a miniature mechanical music workshop. The copper marble strikes three small glass chimes in sequence, each chime visibly vibrating on impact, then settles into a velvet-lined cup. The camera glides alongside at marble height, keeping the copper marble sharp while brass gears turn softly in the background. Warm side light, tactile wood grain, teal shadows, playful practical miniature photography, one uninterrupted shot. Sound: the marble rolling on wood, three clear glass notes synchronized to the three visible impacts, then one soft landing; quiet gear ticks underneath, no speech and no background music. No text or logos.",
+        "duration": 6,
+        "resolution": "720p",
+        "aspect_ratio": "16:9",
+        "fps": 24,
+        "generate_audio": true
+      },
+      "request_id": "740643d2-7598-42db-84c2-9f045bcf7cfa",
+      "submitted_at": "2026-11-09T15:54:44-0800",
+      "command_started_at": "2026-11-09T15:54:43-08:00",
+      "command_completed_at": "2026-11-09T15:55:35-08:00",
+      "seconds_end_to_end": 50.671,
+      "submissions": 1,
+      "ffprobe_original": {
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration_s": 6.0,
+        "size_bytes": 3429184,
+        "bit_rate": 4572245,
+        "video": {
+          "codec": "h264",
+          "profile": "High",
+          "width": 1280,
+          "height": 720,
+          "pix_fmt": "yuv420p",
+          "fps": "24/1",
+          "frames": 144,
+          "duration_s": 6.0
+        },
+        "audio": {
+          "codec": "aac",
+          "profile": "LC",
+          "sample_rate": 48000,
+          "channels": 2,
+          "duration_s": 6.0
+        }
+      },
+      "audio_assessment": "Audio track present and non-silent by ffmpeg volumedetect; not aurally assessed, so synchronization is not claimed.",
+      "sha256_original": "4C8306CBCB8840C6863F0096BC62F50EC3CFDA9F7A7C121DD0A034555F53886E",
+      "published": {
+        "path": "/demos/fal-video/ltx-2.5-fast-marble-music.mp4",
+        "sha256": "4C8306CBCB8840C6863F0096BC62F50EC3CFDA9F7A7C121DD0A034555F53886E",
+        "byte_identical_to_original": true
+      },
+      "inspection": {
+        "method": "8- and 18-frame contact sheets, ffmpeg scene-change detection, poster frame at 80% of duration",
+        "visible": [
+          "Copper marble travels along a curved burl-wood track with brass gears behind it",
+          "Marble passes three upright glass rods, then drops into a velvet-lined cup and settles",
+          "Camera stays near marble height; warm light and teal shadows; one uninterrupted shot"
+        ],
+        "missed_or_unverified": [
+          "Clear marble-to-chime impacts and visible chime vibration are not distinguishable in frames",
+          "The glass rods read more like dripping tubes than chimes",
+          "Marble surface texture changes between frames"
+        ]
+      },
+      "est_cost_usd": 0.54,
+      "est_cost_basis": "requested 6 s x 0.09 USD/s (Azure Retail Prices 'Fal Test LTX 2.5 Fast Txt-Vd 720 Video', eastus2, per 1 Second)"
+    },
+    {
+      "model": "ltx-2.5-pro",
+      "deployment": "fal-ltx-2-5-pro",
+      "region": "eastus2",
+      "route": "/providers/falai/v1/lightricks/ltx-2.5/text-to-video/pro",
+      "title": "Paper city",
+      "showcase": "Two-shot continuity across a hard cut, with native generated audio.",
+      "prompt_guidance": "https://fal.ai/learn/tools/how-to-use-ltx-2-5",
+      "request": {
+        "prompt": "A low wide shot reveals a miniature rain-soaked city folded entirely from paper, with glowing amber windows and teal puddle reflections. A small orange origami fox with a white folded-paper tail tip steps from beneath a blue paper awning and looks up as a glowing paper lantern drifts overhead. A hard cut moves to a close side-tracking shot of the same orange origami fox with the same white folded-paper tail tip; the fox takes two careful steps and its reflection travels across a puddle while the lantern passes above. Visible folded-paper edges and handmade textures, warm lantern light against cool rain, shallow depth of field. The rain and gentle paper rustling continue unchanged across the cut, with two soft paw taps at the end; no dialogue or music. Two shots only, no text or logos.",
+        "duration": 6,
+        "resolution": "720p",
+        "aspect_ratio": "16:9",
+        "fps": 24,
+        "generate_audio": true
+      },
+      "request_id": "839f265e-599c-444b-aaa5-a77c48ce5f7c",
+      "submitted_at": "2026-11-09T15:55:47-0800",
+      "command_started_at": "2026-11-09T15:55:45-08:00",
+      "command_completed_at": "2026-11-09T15:56:55-08:00",
+      "seconds_end_to_end": 68.488,
+      "submissions": 1,
+      "ffprobe_original": {
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration_s": 6.0,
+        "size_bytes": 4266588,
+        "bit_rate": 5688784,
+        "video": {
+          "codec": "h264",
+          "profile": "High",
+          "width": 1280,
+          "height": 720,
+          "pix_fmt": "yuv420p",
+          "fps": "24/1",
+          "frames": 144,
+          "duration_s": 6.0
+        },
+        "audio": {
+          "codec": "aac",
+          "profile": "LC",
+          "sample_rate": 48000,
+          "channels": 2,
+          "duration_s": 6.0
+        }
+      },
+      "audio_assessment": "Audio track present and non-silent by ffmpeg volumedetect; not aurally assessed, so synchronization is not claimed.",
+      "sha256_original": "B8B7DA7243B0499223BEA0004679BB3CC1A9445379586A9E97846591E43E4DE8",
+      "published": {
+        "path": "/demos/fal-video/ltx-2.5-pro-paper-city.mp4",
+        "sha256": "B8B7DA7243B0499223BEA0004679BB3CC1A9445379586A9E97846591E43E4DE8",
+        "byte_identical_to_original": true
+      },
+      "inspection": {
+        "method": "8- and 18-frame contact sheets, ffmpeg scene-change detection, poster frame at 80% of duration",
+        "visible": [
+          "Wide shot of a rainy paper city with amber windows, blue paper awnings and teal puddles",
+          "Orange origami fox with a white tail tip walks under a glowing paper lantern",
+          "One hard cut detected at 2.5 s (ffmpeg scene score 0.25) to a close side view",
+          "Same fox design (orange body, white tail tip) after the cut, walking with the lantern above"
+        ],
+        "missed_or_unverified": [
+          "Fox walks down the street toward camera rather than clearly stepping out from beneath an awning",
+          "A distinct look-up at the lantern is not clear in frames",
+          "Paw taps and sound continuity across the cut are not aurally assessed"
+        ]
+      },
+      "est_cost_usd": 0.72,
+      "est_cost_basis": "requested 6 s x 0.12 USD/s (Azure Retail Prices 'Fal Test LTX 2.5 Pro Txt-Vd 720 Video', eastus2, per 1 Second)"
+    },
+    {
+      "model": "minimax-h3-max",
+      "deployment": "fal-minimax-h3-max",
+      "region": "eastus2",
+      "route": "/providers/falai/v1/minimax/h3-max/text-to-video",
+      "title": "Clockwork bloom",
+      "showcase": "Timed action beats with prompt expansion disabled.",
+      "prompt_guidance": "https://fal.ai/learn/tools/how-to-use-minimax-h3-max",
+      "request": {
+        "prompt": "A locked-off macro product shot of a single polished brass seed resting on dark blue velvet, dramatic warm side lighting and a completely uncluttered background. From 0 to 2 seconds, a fine seam opens in the brass seed and three tiny internal gears turn. From 2 to 4 seconds, translucent turquoise glass petals unfold outward from the seed into one symmetrical flower, revealing a small amber light at its center. From 4 to 5 seconds, the completed glass flower holds still while one soft pulse of light passes through its petals. Precise miniature clockwork, delicate glass reflections, one continuous shot. Sound: quiet mechanical clicks while the seed opens, a soft rising glass tone as the petals unfold, and one clear bell note when the flower is fully open; no speech or music. No text or logos.",
+        "duration": 5,
+        "resolution": "480P",
+        "prompt_expansion_mode": "disabled"
+      },
+      "request_id": "e9476e3d-41e9-428a-bfd4-ab13a026a85d",
+      "submitted_at": "2026-11-09T15:57:06-0800",
+      "command_started_at": "2026-11-09T15:57:05-08:00",
+      "command_completed_at": "2026-11-09T15:57:34-08:00",
+      "seconds_end_to_end": 27.497,
+      "submissions": 1,
+      "ffprobe_original": {
+        "container": "mov,mp4,m4a,3gp,3g2,mj2",
+        "duration_s": 5.184,
+        "size_bytes": 1693650,
+        "bit_rate": 2613657,
+        "video": {
+          "codec": "h264",
+          "profile": "Constrained Baseline",
+          "width": 832,
+          "height": 480,
+          "pix_fmt": "yuv420p",
+          "fps": "24/1",
+          "frames": 124,
+          "duration_s": 5.166667
+        },
+        "audio": {
+          "codec": "aac",
+          "profile": "LC",
+          "sample_rate": 32000,
+          "channels": 2,
+          "duration_s": 5.184
+        }
+      },
+      "audio_assessment": "Audio track present and non-silent by ffmpeg volumedetect; not aurally assessed, so synchronization is not claimed.",
+      "sha256_original": "5758998D1AB08E95844178A84698A9EACF1678A66872BB72C15573039E4845E5",
+      "published": {
+        "path": "/demos/fal-video/minimax-h3-max-clockwork-bloom.mp4",
+        "sha256": "5758998D1AB08E95844178A84698A9EACF1678A66872BB72C15573039E4845E5",
+        "byte_identical_to_original": true
+      },
+      "inspection": {
+        "method": "8- and 18-frame contact sheets, ffmpeg scene-change detection, poster frame at 80% of duration",
+        "visible": [
+          "Polished brass seed on dark blue velvet with warm side light and a clean background",
+          "Seam opens early; turquoise glass petals unfold into one symmetrical flower",
+          "Amber light and a small gear at the flower's center; the open flower holds near the end"
+        ],
+        "missed_or_unverified": [
+          "Three separate internal gears are not distinguishable (one central gear is visible)",
+          "Framing is largely static but the subject shifts and rotates slightly as it opens",
+          "The final pulse of light is not confirmed from sampled frames"
+        ]
+      },
+      "est_cost_usd": 0.25,
+      "est_cost_basis": "requested 5 s x 0.05 USD/s (Azure Retail Prices 'Fal Test MM H3 Mx Txt-Vd 480 Video', eastus2, per 1 Second)"
     }
   ]
 }

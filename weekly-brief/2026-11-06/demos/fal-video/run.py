@@ -10,13 +10,13 @@ import argparse
 import json
 import math
 import os
+import re
 from pathlib import Path
 import shutil
 import subprocess
 import sys
 import time
 from urllib.parse import quote, urlparse
-from uuid import uuid4
 
 from azure.identity import DefaultAzureCredential
 from azure.core.exceptions import AzureError
@@ -25,6 +25,7 @@ from dotenv import load_dotenv
 
 
 ROOT = Path(__file__).resolve().parents[2]
+STATE: dict = {"request_id": None}
 PROMPT = (
     "A calm developer workspace at dawn, an empty desk with an unbranded laptop "
     "showing abstract colored code blocks, a plain notebook and a warm cup of tea. "
@@ -76,7 +77,7 @@ def payload(model: str, deployment: str, prompt: str) -> dict:
     if resolution:
         body["resolution"] = resolution
     if model.startswith("ltx"):
-        body.update(aspect_ratio="16:9", fps=24)
+        body.update(aspect_ratio="16:9", fps=24, generate_audio=True)
     elif model.startswith("minimax"):
         body["prompt_expansion_mode"] = "disabled"
     else:
@@ -88,14 +89,15 @@ def probe(path: Path) -> dict:
     """Measure the downloaded file instead of reporting requested dimensions."""
     completed = subprocess.run(
         [
-            "ffprobe", "-v", "error", "-select_streams", "v:0",
-            "-show_entries", "stream=width,height,avg_frame_rate:format=duration",
+            "ffprobe", "-v", "error",
+            "-show_entries", "stream=codec_type,width,height,avg_frame_rate:format=duration",
             "-of", "json", str(path),
         ],
         check=True, capture_output=True, text=True,
     )
     data = json.loads(completed.stdout)
-    stream = data["streams"][0]
+    streams = data["streams"]
+    stream = next(s for s in streams if s.get("codec_type") == "video")
     numerator, denominator = map(float, stream["avg_frame_rate"].split("/"))
     width, height = int(stream["width"]), int(stream["height"])
     duration = float(data["format"]["duration"])
@@ -104,12 +106,14 @@ def probe(path: Path) -> dict:
     return {
         "width": width, "height": height,
         "duration_s": duration, "fps": numerator / denominator,
+        # Stream presence only; this does not assess what the audio sounds like.
+        "has_audio": any(s.get("codec_type") == "audio" for s in streams),
         "file_mb": round(path.stat().st_size / 1_000_000, 3),
     }
 
 
-def generate(model: str, prompt: str) -> dict:
-    """Submit once, poll with a deadline, download, and measure a real clip."""
+def generate(model: str, prompt: str, resume: str | None = None) -> dict:
+    """Submit once (or resume a known request), poll, download, and measure a real clip."""
     if os.environ.get("FAL_ACCESS_CONFIRMED", "").lower() != "true":
         raise ValueError(
             "Live generation is unavailable: fal access has not been confirmed. "
@@ -130,6 +134,8 @@ def generate(model: str, prompt: str) -> dict:
         raise ValueError("ffprobe is required to measure the generated video")
     if not prompt.strip():
         raise ValueError("Prompt must not be empty")
+    if resume is not None and not re.fullmatch(r"[A-Za-z0-9_-]{1,128}", resume):
+        raise ValueError("request_id has an unexpected format")
 
     family, route, requested_duration, _ = MODELS[model]
     base = f"{endpoint}/providers/falai/v1/{family}"
@@ -149,10 +155,29 @@ def generate(model: str, prompt: str) -> dict:
                 raise ValueError("Foundry returned a non-object response")
             return result
 
-        submitted = request("POST", f"{base}/{route}", json=payload(model, deployment, prompt))
-        request_id = submitted.get("request_id")
-        if not isinstance(request_id, str) or not request_id:
-            raise ValueError("Foundry did not return a request_id; do not resubmit blindly")
+        output = ROOT / "public" / "demos" / "fal-video" / "live"
+        output.mkdir(parents=True, exist_ok=True)
+        body = payload(model, deployment, prompt)
+        if resume:
+            request_id = resume
+        else:
+            submitted_at = time.strftime("%Y-%m-%dT%H:%M:%S%z")
+            submitted = request("POST", f"{base}/{route}", json=body)
+            request_id = submitted.get("request_id")
+            if not isinstance(request_id, str) or not request_id:
+                raise ValueError("Foundry did not return a request_id; do not resubmit blindly")
+            STATE["request_id"] = request_id
+            if not re.fullmatch(r"[A-Za-z0-9_-]{1,128}", request_id):
+                raise ValueError("request_id has an unexpected format; do not resubmit blindly")
+            # Persist immediately so a failed poll/download can resume without a second paid job.
+            (output / f"{model}-{request_id}.request.json").write_text(json.dumps({
+                "model": model, "deployment": deployment, "request_id": request_id,
+                "route": f"/providers/falai/v1/{family}/{route}", "submitted_at": submitted_at,
+                "payload": body,
+            }, indent=2), encoding="utf-8")
+        if not re.fullmatch(r"[A-Za-z0-9_-]{1,128}", request_id):
+            raise ValueError("request_id has an unexpected format")
+        STATE["request_id"] = request_id
         result_url = f"{base}/requests/{quote(request_id, safe='')}"
         while True:
             if time.perf_counter() >= deadline:
@@ -173,9 +198,7 @@ def generate(model: str, prompt: str) -> dict:
         video_url = video["url"]
         if urlparse(video_url).scheme != "https":
             raise ValueError("Video download URL must use HTTPS")
-        output = ROOT / "public" / "demos" / "fal-video" / "live"
-        output.mkdir(parents=True, exist_ok=True)
-        path = output / f"{model}-{uuid4().hex}.mp4"
+        path = output / f"{model}-{request_id}.mp4"
         partial = path.with_suffix(".part")
         # Signed storage links do not receive the Azure bearer token.
         # Same-resource links can require it; never forward it across redirects.
@@ -216,7 +239,12 @@ def main() -> int:
     parser.add_argument("--json", action="store_true", help="Emit JSON (also the default)")
     parser.add_argument("--model", choices=tuple(MODELS))
     parser.add_argument("--prompt", default=PROMPT)
+    parser.add_argument("--resume", metavar="REQUEST_ID",
+                        help="Poll/download an already-submitted request; never resubmits (needs --model)")
     args = parser.parse_args()
+    if args.resume and not args.model:
+        parser.error("--resume requires --model")
+    STATE["request_id"] = None
     load_dotenv(Path(__file__).with_name(".env"), override=False)
     load_dotenv(ROOT / ".env", override=False)
     model = args.model
@@ -228,12 +256,12 @@ def main() -> int:
                 (name for name in MODELS if isinstance(deployments.get(name), str)
                  and deployments[name].strip()), "minimax-h3-max-turbo"
             )
-        result = generate(model, args.prompt)
+        result = generate(model, args.prompt, args.resume)
     except (ValueError, RuntimeError, TimeoutError, httpx.HTTPError, AzureError,
             subprocess.SubprocessError, OSError, KeyError, IndexError,
             ZeroDivisionError) as error:
         result = {
-            "ok": False, "model": model, "request_id": None, "prompt": args.prompt,
+            "ok": False, "model": model, "request_id": STATE["request_id"], "prompt": args.prompt,
             "seconds": None, "video_path": None, "width": None, "height": None,
             "duration_s": None, "est_cost_usd": None,
             "error": (

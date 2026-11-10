@@ -83,6 +83,7 @@ class RunnerTests(unittest.TestCase):
     def test_family_payloads(self):
         ltx = RUN.payload("ltx-2.5-fast", "draft", "scene")
         self.assertEqual((ltx["duration"], ltx["resolution"], ltx["fps"]), (6, "720p", 24))
+        self.assertTrue(ltx["generate_audio"])
         self.assertEqual(RUN.payload("ltx-2.5-pro", "final", "scene")["duration"], 6)
         kling = RUN.payload("kling-v3-pro", "kling", "scene")
         self.assertEqual(kling["duration"], "5")
@@ -127,6 +128,10 @@ class RunnerTests(unittest.TestCase):
             self.assertEqual(result["est_cost_usd"], 0.54)
             self.assertEqual((Path(directory) / result["video_path"]).read_bytes(), b"real-test-payload")
             self.assertFalse(list(Path(directory).rglob("*.part")))
+            saved = json.loads(next(Path(directory).rglob("*job-123.request.json")).read_text())
+            self.assertEqual((saved["request_id"], saved["payload"]["prompt"]), ("job-123", "scene"))
+            self.assertTrue(saved["payload"]["generate_audio"])
+            self.assertNotIn("azure-token-test", json.dumps(saved))
         self.assertEqual(client.request.call_args_list[0].args[0], "POST")
         self.assertEqual(sum(call.args[0] == "POST" for call in client.request.call_args_list), 1)
         self.assertEqual(client.stream.call_args.kwargs["headers"], {})
@@ -137,7 +142,8 @@ class RunnerTests(unittest.TestCase):
             httpx.Response(200, json={"request_id": "job"}),
             httpx.Response(200, json={"status": "FAILED"}),
         ]
-        with patch.dict(os.environ, CONFIG, clear=True), \
+        with tempfile.TemporaryDirectory() as directory, patch.object(RUN, "ROOT", Path(directory)), \
+                patch.dict(os.environ, CONFIG, clear=True), \
                 patch.object(RUN.shutil, "which", return_value="ffprobe"), \
                 patch.object(RUN, "DefaultAzureCredential"), \
                 patch.object(RUN.httpx, "Client") as client_type:
@@ -145,6 +151,25 @@ class RunnerTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "FAILED"):
                 RUN.generate("ltx-2.5-fast", "scene")
         self.assertEqual(client.request.call_count, 2)
+        self.assertEqual(RUN.STATE["request_id"], "job")
+
+    def test_resume_never_posts(self):
+        client = MagicMock()
+        client.request.side_effect = [httpx.Response(200, json={"status": "FAILED"})]
+        with tempfile.TemporaryDirectory() as directory, patch.object(RUN, "ROOT", Path(directory)), \
+                patch.dict(os.environ, CONFIG, clear=True), \
+                patch.object(RUN.shutil, "which", return_value="ffprobe"), \
+                patch.object(RUN, "DefaultAzureCredential"), \
+                patch.object(RUN.httpx, "Client") as client_type:
+            client_type.return_value.__enter__.return_value = client
+            with self.assertRaisesRegex(RuntimeError, "FAILED"):
+                RUN.generate("ltx-2.5-fast", "scene", resume="job-9")
+        self.assertNotIn("POST", [call.args[0] for call in client.request.call_args_list])
+        with patch.object(RUN.shutil, "which", return_value="ffprobe"):
+            code, result = self.main_result(["run.py", "--json", "--model", "ltx-2.5-fast",
+                                             "--resume", "bad/id"], CONFIG)
+        self.assertEqual((code, result["ok"]), (1, False))
+        self.assertIn("unexpected format", result["error"])
 
     def test_manifest_assets_and_source_prices(self):
         public = RUN.ROOT / "public" / "demos" / "fal-video"
@@ -152,9 +177,16 @@ class RunnerTests(unittest.TestCase):
         evidence = json.loads((public / "evidence.json").read_text())
         self.assertEqual(manifest["status"], "partial")
         self.assertTrue(manifest["live"]["supported"])
-        self.assertEqual(manifest["metrics"]["generation_attempts"], 1)
+        self.assertEqual(manifest["metrics"]["generation_attempts"], 5)
         videos = [asset for asset in manifest["assets"] if asset["kind"] == "video"]
-        self.assertEqual([asset["model"] for asset in videos], ["minimax-h3-max-turbo"])
+        self.assertEqual([asset["model"] for asset in videos], [
+            "minimax-h3-max-turbo", "kling-v3-pro", "ltx-2.5-fast", "ltx-2.5-pro", "minimax-h3-max"])
+        for video in videos:
+            self.assertTrue(video["prompt"] and video["title"] and video["poster"])
+            self.assertTrue((RUN.ROOT / "public" / video["poster"].lstrip("/")).is_file())
+            self.assertLessEqual(video["metrics"]["file_mb"], 15)
+        self.assertLessEqual(sum(v["metrics"]["file_mb"] for v in videos), 40)
+        self.assertLessEqual(manifest["metrics"]["generation_spend_usd_estimate_creative_clips"], 2.25)
         for asset in manifest["assets"]:
             self.assertTrue((RUN.ROOT / "public" / asset["path"].lstrip("/")).is_file())
         self.assertTrue(evidence["pricing"]["confirmed_billing_unit"])
